@@ -1,0 +1,24 @@
+# Install or uninstall by tags method
+# Pass the install tag to this playbook to install the trellix agent.
+# Otherwise pass the uninstall to uninstall. Not passing a tag will result in nothing happening.
+# Will skip install if agent is already detected.
+- name: Check if trellix agent is installed
+  ansible.builtin.stat:
+    path: /etc/systemd/system/mcafee.ma.service
+  register: tagent_installed
+  tags:
+    - always
+
+- name: Run the install trellix agent
+  ansible.builtin.import_tasks: install.yml
+  when: not tagent_installed.stat.exists
+  tags:
+    - install
+    - never
+
+- name: Will uninstall the trellix agent
+  ansible.builtin.import_tasks: uninstall.yml
+  when: tagent_installed.stat.exists
+  tags:
+    - uninstall
+    - never
