@@ -1,0 +1,6 @@
+# Install commvault file agent
+- hosts: es-nodes
+  gather_facts: no
+  become: yes
+  roles:
+    - commvault_fileagent
