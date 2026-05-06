@@ -1,0 +1,14 @@
+tagent_file_agent: "install.sh"
+tagent_file_agent_tmp_install: "/opt/ma_inst"
+tagent_install_path_dir: "/opt/McAfee"
+# Noscript bypasses uninstall protection for MFE
+mfe_packages_to_remove_noscript:
+  - "McAfeeTP"
+  - "McAfeeESPFileAccess"
+  - "McAfeeESPAac"
+  - "McAfeeESP"
+mfe_packages_to_remove:
+  - "McAfeeRt"
+  - "MFEcma"
+  - "MFEdx"
+  - "paa"
