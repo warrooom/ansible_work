@@ -1,0 +1,8 @@
+cv_file_agent: "CVLinuxFileAgent_20260313.tar"
+cv_file_agent_tmp_install: "/opt/pkg/tmp"
+# How should the fapolicy rules look
+cv_fapolicyfile: /etc/fapolicyd/rules.d/07-commvault_fa.rules
+cv_cfa_rule_list: |
+  allow perm=execute uid=root dir=/opt/commvault/ : dir=/opt/commvault/ ftype=application/x-executable trust=0
+  allow perm=open dir=/opt/commvault/ : dir=/opt/commvault/ trust=0
+  allow perm=execute auid=root dir=/opt/commvault/Base/ : dir=/opt/commvault/ ftype=application/x-executable trust=0
