@@ -1,0 +1,21 @@
+# Debug script to help with quick testing of new ideas or issues
+- hosts: all
+  gather_facts: no
+  become: yes
+
+  tasks:
+  - name: Gather service facts
+    ansible.builtin.setup:
+      gather_subset:
+        - '!all'
+        - 'min'
+
+  - name: Call RHEL9
+    ansible.builtin.import_role:
+      name: varstest
+    when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "9"
+
+#  - name: Call RHEL8
+#    ansible.builtin.import_role:
+#      name: varstest
+#    when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "8"
