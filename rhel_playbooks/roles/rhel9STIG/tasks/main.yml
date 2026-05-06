@@ -1,0 +1,603 @@
+# Ensure rule file exitsts
+- name: Check if audit rule file exists
+  ansible.builtin.stat:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+  register: audit_dir_stat
+# Make audit rules file with correct permissions
+- name: Build audit rule file if not exists
+  ansible.builtin.file:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    mode: '0640'
+    owner: root
+    group: root
+    state: touch
+  when: not audit_dir_stat.stat.exists
+# Remove legacy RedHat files which are not in the desired order and do not satisfy stig requirements.
+- name: Removing old Red Hat audit rules
+  ansible.builtin.file:
+    path: '/etc/audit/rules.d/{{ item }}'
+    state: absent
+  loop: "{{ rhel9STIG_stigrule_etc_audit_rules_old_rhel_files_list }}"
+  ignore_errors: yes
+# Remove legacy RedHat lines which cause parsing errors.
+- name: Remove legacy audit rule lines
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^auditctl -w /etc/cron.d/ -p wa -k cronjobs$'
+    state: absent
+  notify: auditd_restart
+- name: Remove legacy audit rule lines
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^auditctl -w /var/spool/cron/ -p wa -k cronjobs$'
+    state: absent
+  notify: auditd_restart
+# R-258176 RHEL-09-654010
+- name: stigrule_258176__etc_audit_rules_d_audit_rules_execve_euid_b32
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b32 -S execve -C uid!=euid -F euid=0 -k execpriv$'
+    line: "{{ rhel9STIG_stigrule_258176__etc_audit_rules_d_audit_rules_execve_euid_b32_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258176_Manage
+# R-258176 RHEL-09-654010
+- name: stigrule_258176__etc_audit_rules_d_audit_rules_execve_euid_b64
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b64 -S execve -C uid!=euid -F euid=0 -k execpriv$'
+    line: "{{ rhel9STIG_stigrule_258176__etc_audit_rules_d_audit_rules_execve_euid_b64_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258176_Manage
+# R-258176 RHEL-09-654010
+- name: stigrule_258176__etc_audit_rules_d_audit_rules_execve_egid_b32
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b32 -S execve -C gid!=egid -F egid=0 -k execpriv$'
+    line: "{{ rhel9STIG_stigrule_258176__etc_audit_rules_d_audit_rules_execve_egid_b32_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258176_Manage
+# R-258176 RHEL-09-654010
+- name: stigrule_258176__etc_audit_rules_d_audit_rules_execve_egid_b64
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b64 -S execve -C gid!=egid -F egid=0 -k execpriv$'
+    line: "{{ rhel9STIG_stigrule_258176__etc_audit_rules_d_audit_rules_execve_egid_b64_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258176_Manage
+# R-258177 RHEL-09-654015
+- name: stigrule_258177__etc_audit_rules_d_audit_rules_chmod_b32
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b32 -S chmod,fchmod,fchmodat -F auid>=1000 -F auid!=unset -k perm_mod$'
+    line: "{{ rhel9STIG_stigrule_258177__etc_audit_rules_d_audit_rules_chmod_b32_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258177_Manage
+# R-258177 RHEL-09-654015
+- name: stigrule_258177__etc_audit_rules_d_audit_rules_chmod_b64
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b64 -S chmod,fchmod,fchmodat -F auid>=1000 -F auid!=unset -k perm_mod$'
+    line: "{{ rhel9STIG_stigrule_258177__etc_audit_rules_d_audit_rules_chmod_b64_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258177_Manage
+# R-258178 RHEL-09-654020
+- name: stigrule_258178__etc_audit_rules_d_audit_rules_chown_b32
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b32 -S chown,fchown,fchownat,lchown -F auid>=1000 -F auid!=unset -k perm_mod$'
+    line: "{{ rhel9STIG_stigrule_258178__etc_audit_rules_d_audit_rules_chown_b32_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258178_Manage
+# R-258178 RHEL-09-654020
+- name: stigrule_258178__etc_audit_rules_d_audit_rules_chown_b64
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b64 -S chown,fchown,fchownat,lchown -F auid>=1000 -F auid!=unset -k perm_mod$'
+    line: "{{ rhel9STIG_stigrule_258178__etc_audit_rules_d_audit_rules_chown_b64_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258178_Manage
+# R-258179 RHEL-09-654025
+- name: stigrule_258179__etc_audit_rules_d_audit_rules_lremovexattr_b32_unset
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b32 -S setxattr,fsetxattr,lsetxattr,removexattr,fremovexattr,lremovexattr -F auid>=1000 -F auid!=unset -k perm_mod$'
+    line: "{{ rhel9STIG_stigrule_258179__etc_audit_rules_d_audit_rules_lremovexattr_b32_unset_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258179_Manage
+# R-258179 RHEL-09-654025
+- name: stigrule_258179__etc_audit_rules_d_audit_rules_lremovexattr_b64_unset
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b64 -S setxattr,fsetxattr,lsetxattr,removexattr,fremovexattr,lremovexattr -F auid>=1000 -F auid!=unset -k perm_mod$'
+    line: "{{ rhel9STIG_stigrule_258179__etc_audit_rules_d_audit_rules_lremovexattr_b64_unset_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258179_Manage
+# R-258179 RHEL-09-654025
+- name: stigrule_258179__etc_audit_rules_d_audit_rules_lremovexattr_b32
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b32 -S setxattr,fsetxattr,lsetxattr,removexattr,fremovexattr,lremovexattr -F auid=0 -k perm_mod$'
+    line: "{{ rhel9STIG_stigrule_258179__etc_audit_rules_d_audit_rules_lremovexattr_b32_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258179_Manage
+# R-258179 RHEL-09-654025
+- name: stigrule_258179__etc_audit_rules_d_audit_rules_lremovexattr_b64
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b64 -S setxattr,fsetxattr,lsetxattr,removexattr,fremovexattr,lremovexattr -F auid=0 -k perm_mod$'
+    line: "{{ rhel9STIG_stigrule_258179__etc_audit_rules_d_audit_rules_lremovexattr_b64_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258179_Manage
+# R-258180 RHEL-09-654030
+- name: stigrule_258180__etc_audit_rules_d_audit_rules__usr_bin_umount
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/bin/umount -F perm=x -F auid>=1000 -F auid!=unset -k privileged-mount$'
+    line: "{{ rhel9STIG_stigrule_258180__etc_audit_rules_d_audit_rules__usr_bin_umount_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258180_Manage
+# R-258181 RHEL-09-654035
+- name: stigrule_258181__etc_audit_rules_d_audit_rules__usr_bin_chacl
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/bin/chacl -F perm=x -F auid>=1000 -F auid!=unset -k perm_mod$'
+    line: "{{ rhel9STIG_stigrule_258181__etc_audit_rules_d_audit_rules__usr_bin_chacl_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258181_Manage
+# R-258182 RHEL-09-654040
+- name: stigrule_258182__etc_audit_rules_d_audit_rules__usr_bin_setfacl
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/bin/setfacl -F perm=x -F auid>=1000 -F auid!=unset -k perm_mod$'
+    line: "{{ rhel9STIG_stigrule_258182__etc_audit_rules_d_audit_rules__usr_bin_setfacl_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258182_Manage
+# R-258183 RHEL-09-654045
+- name: stigrule_258183__etc_audit_rules_d_audit_rules__usr_bin_chcon
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/bin/chcon -F perm=x -F auid>=1000 -F auid!=unset -k perm_mod$'
+    line: "{{ rhel9STIG_stigrule_258183__etc_audit_rules_d_audit_rules__usr_bin_chcon_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258183_Manage
+- name: stigrule_258184__etc_audit_rules_d_audit_rules__usr_sbin_semanage
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/sbin/semanage -F perm=x -F auid>=1000 -F auid!=unset -k privileged-unix-update$'
+    line: "{{ rhel9STIG_stigrule_258184__etc_audit_rules_d_audit_rules__usr_sbin_semanage_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258184_Manage
+# R-258185 RHEL-09-654055
+- name: stigrule_258185__etc_audit_rules_d_audit_rules__usr_sbin_setfiles
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/sbin/setfiles -F perm=x -F auid>=1000 -F auid!=unset -k privileged-unix-update$'
+    line: "{{ rhel9STIG_stigrule_258185__etc_audit_rules_d_audit_rules__usr_sbin_setfiles_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258185_Manage
+# R-258186 RHEL-09-654060
+- name: stigrule_258186__etc_audit_rules_d_audit_rules__usr_sbin_setsebool
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/sbin/setsebool -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged$'
+    line: "{{ rhel9STIG_stigrule_258186__etc_audit_rules_d_audit_rules__usr_sbin_setsebool_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258186_Manage
+# R-258187 RHEL-09-654065
+- name: stigrule_258187__etc_audit_rules_d_audit_rules_rename_b32
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b32 -S rename,unlink,rmdir,renameat,unlinkat -F auid>=1000 -F auid!=unset -k delete$'
+    line: "{{ rhel9STIG_stigrule_258187__etc_audit_rules_d_audit_rules_rename_b32_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258187_Manage
+# R-258187 RHEL-09-654065
+- name: stigrule_258187__etc_audit_rules_d_audit_rules_rename_b64
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b64 -S rename,unlink,rmdir,renameat,unlinkat -F auid>=1000 -F auid!=unset -k delete$'
+    line: "{{ rhel9STIG_stigrule_258187__etc_audit_rules_d_audit_rules_rename_b64_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258187_Manage
+# R-258188 RHEL-09-654070
+- name: stigrule_258188__etc_audit_rules_d_audit_rules_truncate_EPERM_b32
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b32 -S truncate,ftruncate,creat,open,openat,open_by_handle_at -F exit=-EPERM -F auid>=1000 -F auid!=unset -k perm_access$'
+    line: "{{ rhel9STIG_stigrule_258188__etc_audit_rules_d_audit_rules_truncate_EPERM_b32_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258188_Manage
+# R-258188 RHEL-09-654070
+- name: stigrule_258188__etc_audit_rules_d_audit_rules_truncate_EPERM_b64
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b64 -S truncate,ftruncate,creat,open,openat,open_by_handle_at -F exit=-EPERM -F auid>=1000 -F auid!=unset -k perm_access$'
+    line: "{{ rhel9STIG_stigrule_258188__etc_audit_rules_d_audit_rules_truncate_EPERM_b64_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258188_Manage
+# R-258188 RHEL-09-654070
+- name: stigrule_258188__etc_audit_rules_d_audit_rules_truncate_EACCES_b32
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b32 -S truncate,ftruncate,creat,open,openat,open_by_handle_at -F exit=-EACCES -F auid>=1000 -F auid!=unset -k perm_access$'
+    line: "{{ rhel9STIG_stigrule_258188__etc_audit_rules_d_audit_rules_truncate_EACCES_b32_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258188_Manage
+# R-258188 RHEL-09-654070
+- name: stigrule_258188__etc_audit_rules_d_audit_rules_truncate_EACCES_b64
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b64 -S truncate,ftruncate,creat,open,openat,open_by_handle_at -F exit=-EACCES -F auid>=1000 -F auid!=unset -k perm_access$'
+    line: "{{ rhel9STIG_stigrule_258188__etc_audit_rules_d_audit_rules_truncate_EACCES_b64_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258188_Manage
+# R-258189 RHEL-09-654075
+- name: stigrule_258189__etc_audit_rules_d_audit_rules_delete_module_b32
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b32 -S delete_module -F auid>=1000 -F auid!=unset -k module_chng$'
+    line: "{{ rhel9STIG_stigrule_258189__etc_audit_rules_d_audit_rules_delete_module_b32_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258189_Manage
+# R-258189 RHEL-09-654075
+- name: stigrule_258189__etc_audit_rules_d_audit_rules_delete_module_b64
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b64 -S delete_module -F auid>=1000 -F auid!=unset -k module_chng$'
+    line: "{{ rhel9STIG_stigrule_258189__etc_audit_rules_d_audit_rules_delete_module_b64_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258189_Manage
+# R-258190 RHEL-09-654080
+- name: stigrule_258190__etc_audit_rules_d_audit_rules_init_module_b32
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b32 -S init_module,finit_module -F auid>=1000 -F auid!=unset -k module_chng$'
+    line: "{{ rhel9STIG_stigrule_258190__etc_audit_rules_d_audit_rules_init_module_b32_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258190_Manage
+# R-258190 RHEL-09-654080
+- name: stigrule_258190__etc_audit_rules_d_audit_rules_init_module_b64
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b64 -S init_module,finit_module -F auid>=1000 -F auid!=unset -k module_chng$'
+    line: "{{ rhel9STIG_stigrule_258190__etc_audit_rules_d_audit_rules_init_module_b64_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258190_Manage
+# R-258191 RHEL-09-654085
+- name: stigrule_258191__etc_audit_rules_d_audit_rules__usr_bin_chage
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/bin/chage -F perm=x -F auid>=1000 -F auid!=unset -k privileged-chage$'
+    line: "{{ rhel9STIG_stigrule_258191__etc_audit_rules_d_audit_rules__usr_bin_chage_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258191_Manage
+# R-258192 RHEL-09-654090
+- name: stigrule_258192__etc_audit_rules_d_audit_rules__usr_bin_chsh
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/bin/chsh -F perm=x -F auid>=1000 -F auid!=unset -k priv_cmd$'
+    line: "{{ rhel9STIG_stigrule_258192__etc_audit_rules_d_audit_rules__usr_bin_chsh_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258192_Manage
+# R-258193 RHEL-09-654095
+- name: stigrule_258193__etc_audit_rules_d_audit_rules__usr_bin_crontab
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/bin/crontab -F perm=x -F auid>=1000 -F auid!=unset -k privileged-crontab$'
+    line: "{{ rhel9STIG_stigrule_258193__etc_audit_rules_d_audit_rules__usr_bin_crontab_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258193_Manage
+# R-258194 RHEL-09-654100
+- name: stigrule_258194__etc_audit_rules_d_audit_rules__usr_bin_gpasswd
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/bin/gpasswd -F perm=x -F auid>=1000 -F auid!=unset -k privileged-gpasswd$'
+    line: "{{ rhel9STIG_stigrule_258194__etc_audit_rules_d_audit_rules__usr_bin_gpasswd_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258194_Manage
+# R-258195 RHEL-09-654105
+- name: stigrule_258195__etc_audit_rules_d_audit_rules__usr_bin_kmod
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/bin/kmod -F perm=x -F auid>=1000 -F auid!=unset -k modules$'
+    line: "{{ rhel9STIG_stigrule_258195__etc_audit_rules_d_audit_rules__usr_bin_kmod_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258195_Manage
+# R-258196 RHEL-09-654110
+- name: stigrule_258196__etc_audit_rules_d_audit_rules__usr_bin_newgrp
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/bin/newgrp -F perm=x -F auid>=1000 -F auid!=unset -k priv_cmd$'
+    line: "{{ rhel9STIG_stigrule_258196__etc_audit_rules_d_audit_rules__usr_bin_newgrp_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258196_Manage
+# R-258197 RHEL-09-654115
+- name: stigrule_258197__etc_audit_rules_d_audit_rules__usr_sbin_pam_timestamp_check
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/sbin/pam_timestamp_check -F perm=x -F auid>=1000 -F auid!=unset -k privileged-pam_timestamp_check$'
+    line: "{{ rhel9STIG_stigrule_258197__etc_audit_rules_d_audit_rules__usr_sbin_pam_timestamp_check_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258197_Manage
+# R-258198 RHEL-09-654120
+- name: stigrule_258198__etc_audit_rules_d_audit_rules__usr_bin_passwd
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/bin/passwd -F perm=x -F auid>=1000 -F auid!=unset -k privileged-passwd$'
+    line: "{{ rhel9STIG_stigrule_258198__etc_audit_rules_d_audit_rules__usr_bin_passwd_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258198_Manage
+# R-258199 RHEL-09-654125
+- name: stigrule_258199__etc_audit_rules_d_audit_rules__usr_sbin_postdrop
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/sbin/postdrop -F perm=x -F auid>=1000 -F auid!=unset -k privileged-unix-update$'
+    line: "{{ rhel9STIG_stigrule_258199__etc_audit_rules_d_audit_rules__usr_sbin_postdrop_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258199_Manage
+# R-258200 RHEL-09-654130
+- name: stigrule_258200__etc_audit_rules_d_audit_rules__usr_sbin_postqueue
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/sbin/postqueue -F perm=x -F auid>=1000 -F auid!=unset -k privileged-unix-update$'
+    line: "{{ rhel9STIG_stigrule_258200__etc_audit_rules_d_audit_rules__usr_sbin_postqueue_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258200_Manage
+# R-258201 RHEL-09-654135
+- name: stigrule_258201__etc_audit_rules_d_audit_rules__usr_bin_ssh_agent
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/bin/ssh-agent -F perm=x -F auid>=1000 -F auid!=unset -k privileged-ssh$'
+    line: "{{ rhel9STIG_stigrule_258201__etc_audit_rules_d_audit_rules__usr_bin_ssh_agent_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258201_Manage
+# R-258202 RHEL-09-654140
+- name: stigrule_258202__etc_audit_rules_d_audit_rules__usr_libexec_openssh_ssh_keysign
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/libexec/openssh/ssh-keysign -F perm=x -F auid>=1000 -F auid!=unset -k privileged-ssh$'
+    line: "{{ rhel9STIG_stigrule_258202__etc_audit_rules_d_audit_rules__usr_libexec_openssh_ssh_keysign_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258202_Manage
+# R-258203 RHEL-09-654145
+- name: stigrule_258203__etc_audit_rules_d_audit_rules__usr_bin_su
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/bin/su -F perm=x -F auid>=1000 -F auid!=unset -k privileged-priv_change$'
+    line: "{{ rhel9STIG_stigrule_258203__etc_audit_rules_d_audit_rules__usr_bin_su_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258203_Manage
+# R-258204 RHEL-09-654150
+- name: stigrule_258204__etc_audit_rules_d_audit_rules__usr_bin_sudo
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/bin/sudo -F perm=x -F auid>=1000 -F auid!=unset -k priv_cmd$'
+    line: "{{ rhel9STIG_stigrule_258204__etc_audit_rules_d_audit_rules__usr_bin_sudo_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258204_Manage
+# R-258205 RHEL-09-654155
+- name: stigrule_258205__etc_audit_rules_d_audit_rules__usr_bin_sudoedit
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/bin/sudoedit -F perm=x -F auid>=1000 -F auid!=unset -k priv_cmd$'
+    line: "{{ rhel9STIG_stigrule_258205__etc_audit_rules_d_audit_rules__usr_bin_sudoedit_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258205_Manage
+# R-258206 RHEL-09-654160
+- name: stigrule_258206__etc_audit_rules_d_audit_rules__usr_sbin_unix_chkpwd
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/sbin/unix_chkpwd -F perm=x -F auid>=1000 -F auid!=unset -k privileged-unix-update$'
+    line: "{{ rhel9STIG_stigrule_258206__etc_audit_rules_d_audit_rules__usr_sbin_unix_chkpwd_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258206_Manage
+# R-258207 RHEL-09-654165
+- name: stigrule_258207__etc_audit_rules_d_audit_rules__usr_sbin_unix_update
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/sbin/unix_update -F perm=x -F auid>=1000 -F auid!=unset -k privileged-unix-update$'
+    line: "{{ rhel9STIG_stigrule_258207__etc_audit_rules_d_audit_rules__usr_sbin_unix_update_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258207_Manage
+# R-258208 RHEL-09-654170
+- name: stigrule_258208__etc_audit_rules_d_audit_rules__usr_sbin_userhelper
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/sbin/userhelper -F perm=x -F auid>=1000 -F auid!=unset -k privileged-unix-update$'
+    line: "{{ rhel9STIG_stigrule_258208__etc_audit_rules_d_audit_rules__usr_sbin_userhelper_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258208_Manage
+# R-258209 RHEL-09-654175
+- name: stigrule_258209__etc_audit_rules_d_audit_rules__usr_sbin_usermod
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/sbin/usermod -F perm=x -F auid>=1000 -F auid!=unset -k privileged-usermod$'
+    line: "{{ rhel9STIG_stigrule_258209__etc_audit_rules_d_audit_rules__usr_sbin_usermod_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258209_Manage
+# R-258210 RHEL-09-654180
+- name: stigrule_258210__etc_audit_rules_d_audit_rules__usr_bin_mount
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/bin/mount -F perm=x -F auid>=1000 -F auid!=unset -k privileged-mount$'
+    line: "{{ rhel9STIG_stigrule_258210__etc_audit_rules_d_audit_rules__usr_bin_mount_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258210_Manage
+# R-258211 RHEL-09-654185
+- name: stigrule_258211__etc_audit_rules_d_audit_rules__usr_sbin_init
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/sbin/init -F perm=x -F auid>=1000 -F auid!=unset -k privileged-init$'
+    line: "{{ rhel9STIG_stigrule_258211__etc_audit_rules_d_audit_rules__usr_sbin_init_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258211_Manage
+# R-258212 RHEL-09-654190
+- name: stigrule_258212__etc_audit_rules_d_audit_rules__usr_sbin_poweroff
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/sbin/poweroff -F perm=x -F auid>=1000 -F auid!=unset -k privileged-poweroff$'
+    line: "{{ rhel9STIG_stigrule_258212__etc_audit_rules_d_audit_rules__usr_sbin_poweroff_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258212_Manage
+# R-258213 RHEL-09-654195
+- name: stigrule_258213__etc_audit_rules_d_audit_rules__usr_sbin_reboot
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/sbin/reboot -F perm=x -F auid>=1000 -F auid!=unset -k privileged-reboot$'
+    line: "{{ rhel9STIG_stigrule_258213__etc_audit_rules_d_audit_rules__usr_sbin_reboot_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258213_Manage
+# R-258214 RHEL-09-654200
+- name: stigrule_258214__etc_audit_rules_d_audit_rules__usr_sbin_shutdown
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F path=/usr/sbin/shutdown -F perm=x -F auid>=1000 -F auid!=unset -k privileged-shutdown$'
+    line: "{{ rhel9STIG_stigrule_258214__etc_audit_rules_d_audit_rules__usr_sbin_shutdown_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258214_Manage
+# R-258215 RHEL-09-654205
+- name: stigrule_258215__etc_audit_rules_d_audit_rules__privileged_umount
+  lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b32 -S umount -F auid>=1000 -F auid!=-1 -F key=privileged-umount$'
+    line: "{{ rhel9STIG_stigrule_258215__etc_audit_rules_d_audit_rules__privileged_umount_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258215_Manage
+# R-258216 RHEL-09-654210
+# not in disa book
+- name: stigrule_258216__etc_audit_rules_d_audit_rules__umount2
+  lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b64 -S umount2 -F auid>=1000 -F auid!=-1 -F key=privileged-umount$'
+    line: "{{ rhel9STIG_stigrule_258216__etc_audit_rules_d_audit_rules__umount2_b64_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258216_Manage
+- name: stigrule_258216__etc_audit_rules_d_audit_rules__umount2
+  lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-a always,exit -F arch=b32 -S umount2 -F auid>=1000 -F auid!=-1 -F key=privileged-umount$'
+    line: "{{ rhel9STIG_stigrule_258216__etc_audit_rules_d_audit_rules__umount2_b32_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258216_Manage
+# R-258217 RHEL-09-654215
+- name: stigrule_258217__etc_audit_rules_d_audit_rules__etc_sudoers
+  lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-w /etc/sudoers -p wa -k identity$'
+    line: "{{ rhel9STIG_stigrule_258217__etc_audit_rules_d_audit_rules__etc_sudoers_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258217_Manage
+# R-258218 RHEL-09-654220
+- name: stigrule_258218__etc_audit_rules_d_audit_rules__etc_sudoers_d_
+  lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-w /etc/sudoers.d/ -p wa -k identity$'
+    line: "{{ rhel9STIG_stigrule_258218__etc_audit_rules_d_audit_rules__etc_sudoers_d__Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258218_Manage
+# R-258219 RHEL-09-654225
+- name: stigrule_258219__etc_audit_rules_d_audit_rules__etc_group
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-w /etc/group -p wa -k identity$'
+    line: "{{ rhel9STIG_stigrule_258219__etc_audit_rules_d_audit_rules__etc_group_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258219_Manage
+# R-258220 RHEL-09-654230
+- name: stigrule_258220__etc_audit_rules_d_audit_rules__etc_gshadow
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-w /etc/gshadow -p wa -k identity$'
+    line: "{{ rhel9STIG_stigrule_258220__etc_audit_rules_d_audit_rules__etc_gshadow_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258220_Manage
+# R-258221 RHEL-09-654235
+- name: stigrule_258221__etc_audit_rules_d_audit_rules__etc_security_opasswd
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-w /etc/security/opasswd -p wa -k identity$'
+    line: "{{ rhel9STIG_stigrule_258221__etc_audit_rules_d_audit_rules__etc_security_opasswd_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258221_Manage
+# R-258222 RHEL-09-654240
+- name: stigrule_258222__etc_audit_rules_d_audit_rules__etc_passwd
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-w /etc/passwd -p wa -k identity$'
+    line: "{{ rhel9STIG_stigrule_258222__etc_audit_rules_d_audit_rules__etc_passwd_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258222_Manage
+# R-258223 RHEL-09-654245
+- name: stigrule_258223__etc_audit_rules_d_audit_rules__etc_shadow
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-w /etc/shadow -p wa -k identity$'
+    line: "{{ rhel9STIG_stigrule_258223__etc_audit_rules_d_audit_rules__etc_shadow_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258223_Manage
+# R-258224 RHEL-09-654250
+- name: stigrule_258224__etc_audit_rules_d_audit_rules__var_log_faillock
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-w /var/log/faillock -p wa -k logins$'
+    line: "{{ rhel9STIG_stigrule_258224__etc_audit_rules_d_audit_rules__var_log_faillock_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258224_Manage
+# R-258225 RHEL-09-654255
+- name: stigrule_258225__etc_audit_rules_d_audit_rules__var_log_lastlog
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-w /var/log/lastlog -p wa -k logins$'
+    line: "{{ rhel9STIG_stigrule_258225__etc_audit_rules_d_audit_rules__var_log_lastlog_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258225_Manage
+# R-279936 RHEL-09-654097
+- name: stigrule_279936__etc_audit_rules_d_audit_rules__etc_cron_d_
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-w /etc/cron.d/ -p wa -k cronjobs$'
+    line: "{{ rhel9STIG_stigrule_279936__etc_audit_rules_d_audit_rules__etc_cron_d__Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_279936_Manage
+# R-279936 RHEL-09-654097
+- name: stigrule_279936__etc_audit_rules_d_audit_rules__var_spool_cron_
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-w /var/spool/cron/ -p wa -k cronjobs$'
+    line: "{{ rhel9STIG_stigrule_279936__etc_audit_rules_d_audit_rules__var_spool_cron__Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_279936_Manage
+# The last three lines must come after prior rules to ensure they are at the end
+# R-258227 RHEL-09-654265
+- name: stigrule_258227__etc_audit_rules_d_audit_rules_f2
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-f 2$'
+    line: "{{ rhel9STIG_stigrule_258227__etc_audit_rules_d_audit_rules_f2_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258227_Manage
+# R-258228 RHEL-09-654270
+- name: stigrule_258228__etc_audit_rules_d_audit_rules_loginuid_immutable
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^--loginuid-immutable$'
+    line: "{{ rhel9STIG_stigrule_258228__etc_audit_rules_d_audit_rules_loginuid_immutable_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258228_Manage
+# R-258229 RHEL-09-654275
+- name: stigrule_258229__etc_audit_rules_d_audit_rules_e2
+  ansible.builtin.lineinfile:
+    path: "{{ rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile }}"
+    regexp: '^-e 2$'
+    line: "{{ rhel9STIG_stigrule_258229__etc_audit_rules_d_audit_rules_e2_Line }}"
+  notify: auditd_restart
+  when: rhel9STIG_stigrule_258229_Manage
+# R-257816 RHEL-09-213105
+- name: stigrule_257816_user_max_user_namespaces
+  ansible.builtin.sysctl:
+    name: user.max_user_namespaces
+    value: "{{ rhel9STIG_stigrule_257816_user_max_user_namespaces_Value }}"
+    sysctl_file: "{{ rhel9STIG_stigrule_257816_user_max_user_namespaces_File }}"
+  notify: sysctl_load_settings
+  when:
+    - rhel9STIG_stigrule_257816_Manage
