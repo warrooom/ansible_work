@@ -1,0 +1,6 @@
+# Ensures admins are added to associated machines
+- hosts: all
+  gather_facts: yes
+  become: yes
+  roles:
+    - user_management
