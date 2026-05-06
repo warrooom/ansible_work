@@ -1,0 +1,67 @@
+# Manages the users for all
+#
+# Manages the users for red hat
+# Todo: Add fapolicy management for ansible
+#   Add fix root
+- name: Combine global and group-specific users
+  ansible.builtin.set_fact:
+    combined_users: "{{ en_user_management | default([]) + en_group_user_management | default([]) }}"
+
+- name: Ensure authorized users exist
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    groups: "{{ item.groups }}"
+    password_lock: true
+    append: yes
+    password_expire_max: 60
+    password_expire_min: 1
+    state: present
+    shell: /bin/bash
+  loop: "{{ combined_users }}"    
+
+# V-258231
+- name: Set user random password
+  ansible.builtin.shell:
+    cmd: RPASS=$(openssl rand -base64 18); usermod -p $(openssl passwd -6 "$RPASS") {{ item.name }}; RPASS=$(openssl rand -base64 18)
+  loop: "{{ combined_users }}"
+
+- name: Setup authorized keys
+  ansible.builtin.authorized_key:
+    user: "{{ item.name }}"
+    state: present
+    key: "{{ item.ssh_key }}"
+  loop: "{{ combined_users }}"
+
+- name: Add users to sudoers
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers.d/pki
+    regexp: '^{{ item.name }}'
+    line: '{{ item.name }} ALL=(ALL) NOPASSWD:ALL'
+    create: true
+  loop: "{{ combined_users }}"
+
+- name: Fix Home Permissions
+  ansible.builtin.file:
+    path: "/home/{{ item.name }}"
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: '0700'
+    recurse: yes
+  loop: "{{ combined_users }}"
+
+- name: Remove Uneeded Users
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    state: absent
+    remove: yes
+  loop: "{{ en_remove_user_management }}"
+
+- name: Lock root
+  ansible.builtin.user:
+    name: "root"
+    password_lock: true
+
+# V-258231
+- name: Set root random password
+  ansible.builtin.shell:
+    cmd: RPASS=$(openssl rand -base64 18); usermod -p $(openssl passwd -6 "$RPASS") root; RPASS=$(openssl rand -base64 18)
