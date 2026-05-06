@@ -1,0 +1,3 @@
+# Add varialbes to override those under default for a specific host
+rhel9STIG_stigrule_257816_user_max_user_namespaces_Value: "62544"
+eval_stig_excludevuln: "V-257930,V-257931"
