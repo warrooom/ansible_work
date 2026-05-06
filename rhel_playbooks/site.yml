@@ -1,0 +1,19 @@
+# Performs the tasks of the harden RedHat9 playbook
+#
+- hosts: all
+  gather_facts: no
+  become: yes
+#  roles:
+#    - rhel9STIG
+
+  tasks:
+  - name: Gather service facts
+    ansible.builtin.setup:
+      gather_subset:
+        - '!all'
+        - 'min'
+
+  - name: Call the role based on distribution
+    ansible.builtin.import_role:
+      name: rhel9STIG
+    when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "9"
