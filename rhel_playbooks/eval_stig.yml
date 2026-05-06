@@ -1,0 +1,7 @@
+# Support of Q1 2026 STIG efforts and onward
+# Files are returned to ans01 under the /home/aap/ansible directory
+- hosts: all
+  gather_facts: yes
+  become: yes
+  roles:
+    - eval_stig
