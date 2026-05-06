@@ -1,0 +1,50 @@
+dns_named_config_path: /var/named/chroot/etc/named.conf
+dns_named_backup_path: /var/named/chroot/etc/named.conf.bak
+dns_service: named-chroot.service
+dns_named_listen_on_interface: "any"
+dns_bind_forward_zones:
+  - name: "main"
+    forwarders:
+      - "forward1"
+      - "forward2"
+    rev_subnets:  
+      - "rev1"
+      - "rev2"
+      - "rev3"
+      - "rev4"
+  - name: "dom1.local"
+    forwarders:
+      - "forward1"
+      - "forward2"
+  - name: "dom2"
+    forwarders:
+      - "forward1"
+      - "forward2"
+      - "forward3"
+      - "forward4"
+    rev_subnets:
+      - "rev1"
+      - "rev2"
+      - "rev3"
+  - name: "dom3"
+    forwarders:
+      - "forward1"
+      - "forward2" 
+  - name: "dom4"
+    forwarders:
+      - "forward1"
+      - "forward2" 
+  - name: "sdom5"
+    forwarders:
+      - "forward1"
+      - "forward2"
+dns_forward_zones_dom4_forwarders:
+  - "forward1"
+  - "forward2"
+dns_block_top_level_domains_zone_list:
+  - "CN"
+  - "RU"
+
+dns_block_zone_list:
+  - "# Test zone to ensure function"
+  - "endgarbagezone.dev"
