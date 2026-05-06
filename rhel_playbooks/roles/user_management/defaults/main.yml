@@ -1,0 +1,7 @@
+en_user_management:
+  - name: "user1"
+    groups: ["wheel"]
+    ssh_key: "ssh-rsa  user"
+  - name: "user2"
+    groups: ["wheel"]
+    ssh_key: "ssh-rsa  user2"
