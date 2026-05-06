@@ -1,0 +1,195 @@
+#Configured default 
+rhel9STIG_stigrule_etc_audit_rules_d_audit_rules_cprcfile: '/etc/audit/rules.d/audit.rules'
+# Old audit files from Red Hat used for STIG profile in incorrect order
+rhel9STIG_stigrule_etc_audit_rules_old_rhel_files_list:
+  - access.rules
+  - actions.rules
+  - cronjobs.rules
+  - delete.rules
+  - immutable.rules
+  - logins.rules
+  - modules.rules
+  - perm_mod.rules
+  - privileged.rules
+# R-258176 RHEL-09-654010
+rhel9STIG_stigrule_258176_Manage: True
+rhel9STIG_stigrule_258176__etc_audit_rules_d_audit_rules_execve_euid_b32_Line: '-a always,exit -F arch=b32 -S execve -C uid!=euid -F euid=0 -k execpriv'
+rhel9STIG_stigrule_258176__etc_audit_rules_d_audit_rules_execve_euid_b64_Line: '-a always,exit -F arch=b64 -S execve -C uid!=euid -F euid=0 -k execpriv'
+rhel9STIG_stigrule_258176__etc_audit_rules_d_audit_rules_execve_egid_b32_Line: '-a always,exit -F arch=b32 -S execve -C gid!=egid -F egid=0 -k execpriv'
+rhel9STIG_stigrule_258176__etc_audit_rules_d_audit_rules_execve_egid_b64_Line: '-a always,exit -F arch=b64 -S execve -C gid!=egid -F egid=0 -k execpriv'
+# R-258177 RHEL-09-654015
+rhel9STIG_stigrule_258177_Manage: True
+rhel9STIG_stigrule_258177__etc_audit_rules_d_audit_rules_chmod_b32_Line: '-a always,exit -F arch=b32 -S chmod,fchmod,fchmodat -F auid>=1000 -F auid!=unset -k perm_mod'
+rhel9STIG_stigrule_258177__etc_audit_rules_d_audit_rules_chmod_b64_Line: '-a always,exit -F arch=b64 -S chmod,fchmod,fchmodat -F auid>=1000 -F auid!=unset -k perm_mod'
+# R-258178 RHEL-09-654020
+rhel9STIG_stigrule_258178_Manage: True
+rhel9STIG_stigrule_258178__etc_audit_rules_d_audit_rules_chown_b32_Line: '-a always,exit -F arch=b32 -S chown,fchown,fchownat,lchown -F auid>=1000 -F auid!=unset -k perm_mod'
+rhel9STIG_stigrule_258178__etc_audit_rules_d_audit_rules_chown_b64_Line: '-a always,exit -F arch=b64 -S chown,fchown,fchownat,lchown -F auid>=1000 -F auid!=unset -k perm_mod'
+# R-258179 RHEL-09-654025
+rhel9STIG_stigrule_258179_Manage: True
+rhel9STIG_stigrule_258179__etc_audit_rules_d_audit_rules_lremovexattr_b32_unset_Line: '-a always,exit -F arch=b32 -S setxattr,fsetxattr,lsetxattr,removexattr,fremovexattr,lremovexattr -F auid>=1000 -F auid!=unset -k perm_mod'
+rhel9STIG_stigrule_258179__etc_audit_rules_d_audit_rules_lremovexattr_b64_unset_Line: '-a always,exit -F arch=b64 -S setxattr,fsetxattr,lsetxattr,removexattr,fremovexattr,lremovexattr -F auid>=1000 -F auid!=unset -k perm_mod'
+rhel9STIG_stigrule_258179__etc_audit_rules_d_audit_rules_lremovexattr_b32_Line: '-a always,exit -F arch=b32 -S setxattr,fsetxattr,lsetxattr,removexattr,fremovexattr,lremovexattr -F auid=0 -k perm_mod'
+rhel9STIG_stigrule_258179__etc_audit_rules_d_audit_rules_lremovexattr_b64_Line: '-a always,exit -F arch=b64 -S setxattr,fsetxattr,lsetxattr,removexattr,fremovexattr,lremovexattr -F auid=0 -k perm_mod'
+# R-258180 RHEL-09-654030
+rhel9STIG_stigrule_258180_Manage: True
+rhel9STIG_stigrule_258180__etc_audit_rules_d_audit_rules__usr_bin_umount_Line: '-a always,exit -F path=/usr/bin/umount -F perm=x -F auid>=1000 -F auid!=unset -k privileged-mount'
+# R-258181 RHEL-09-654035
+rhel9STIG_stigrule_258181_Manage: True
+rhel9STIG_stigrule_258181__etc_audit_rules_d_audit_rules__usr_bin_chacl_Line: '-a always,exit -F path=/usr/bin/chacl -F perm=x -F auid>=1000 -F auid!=unset -k perm_mod'
+# R-258182 RHEL-09-654040
+rhel9STIG_stigrule_258182_Manage: True
+rhel9STIG_stigrule_258182__etc_audit_rules_d_audit_rules__usr_bin_setfacl_Line: '-a always,exit -F path=/usr/bin/setfacl -F perm=x -F auid>=1000 -F auid!=unset -k perm_mod'
+# R-258183 RHEL-09-654045
+rhel9STIG_stigrule_258183_Manage: True
+rhel9STIG_stigrule_258183__etc_audit_rules_d_audit_rules__usr_bin_chcon_Line: '-a always,exit -F path=/usr/bin/chcon -F perm=x -F auid>=1000 -F auid!=unset -k perm_mod'
+# R-258184 RHEL-09-654050
+rhel9STIG_stigrule_258184_Manage: True
+rhel9STIG_stigrule_258184__etc_audit_rules_d_audit_rules__usr_sbin_semanage_Line: '-a always,exit -F path=/usr/sbin/semanage -F perm=x -F auid>=1000 -F auid!=unset -k privileged-unix-update'
+# R-258185 RHEL-09-654055
+rhel9STIG_stigrule_258185_Manage: True
+rhel9STIG_stigrule_258185__etc_audit_rules_d_audit_rules__usr_sbin_setfiles_Line: '-a always,exit -F path=/usr/sbin/setfiles -F perm=x -F auid>=1000 -F auid!=unset -k privileged-unix-update'
+# R-258186 RHEL-09-654060
+rhel9STIG_stigrule_258186_Manage: True
+rhel9STIG_stigrule_258186__etc_audit_rules_d_audit_rules__usr_sbin_setsebool_Line: '-a always,exit -F path=/usr/sbin/setsebool -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged'
+# R-258187 RHEL-09-654065
+rhel9STIG_stigrule_258187_Manage: True
+rhel9STIG_stigrule_258187__etc_audit_rules_d_audit_rules_rename_b32_Line: '-a always,exit -F arch=b32 -S rename,unlink,rmdir,renameat,unlinkat -F auid>=1000 -F auid!=unset -k delete'
+rhel9STIG_stigrule_258187__etc_audit_rules_d_audit_rules_rename_b64_Line: '-a always,exit -F arch=b64 -S rename,unlink,rmdir,renameat,unlinkat -F auid>=1000 -F auid!=unset -k delete'
+# R-258188 RHEL-09-654070
+rhel9STIG_stigrule_258188_Manage: True
+rhel9STIG_stigrule_258188__etc_audit_rules_d_audit_rules_truncate_EPERM_b32_Line: '-a always,exit -F arch=b32 -S truncate,ftruncate,creat,open,openat,open_by_handle_at -F exit=-EPERM -F auid>=1000 -F auid!=unset -k perm_access'
+rhel9STIG_stigrule_258188__etc_audit_rules_d_audit_rules_truncate_EPERM_b64_Line: '-a always,exit -F arch=b64 -S truncate,ftruncate,creat,open,openat,open_by_handle_at -F exit=-EPERM -F auid>=1000 -F auid!=unset -k perm_access'
+rhel9STIG_stigrule_258188__etc_audit_rules_d_audit_rules_truncate_EACCES_b32_Line: '-a always,exit -F arch=b32 -S truncate,ftruncate,creat,open,openat,open_by_handle_at -F exit=-EACCES -F auid>=1000 -F auid!=unset -k perm_access'
+rhel9STIG_stigrule_258188__etc_audit_rules_d_audit_rules_truncate_EACCES_b64_Line: '-a always,exit -F arch=b64 -S truncate,ftruncate,creat,open,openat,open_by_handle_at -F exit=-EACCES -F auid>=1000 -F auid!=unset -k perm_access'
+# R-258189 RHEL-09-654075
+rhel9STIG_stigrule_258189_Manage: True
+rhel9STIG_stigrule_258189__etc_audit_rules_d_audit_rules_delete_module_b32_Line: '-a always,exit -F arch=b32 -S delete_module -F auid>=1000 -F auid!=unset -k module_chng'
+rhel9STIG_stigrule_258189__etc_audit_rules_d_audit_rules_delete_module_b64_Line: '-a always,exit -F arch=b64 -S delete_module -F auid>=1000 -F auid!=unset -k module_chng'
+# R-258190 RHEL-09-654080
+rhel9STIG_stigrule_258190_Manage: True
+rhel9STIG_stigrule_258190__etc_audit_rules_d_audit_rules_init_module_b32_Line: '-a always,exit -F arch=b32 -S init_module,finit_module -F auid>=1000 -F auid!=unset -k module_chng'
+rhel9STIG_stigrule_258190__etc_audit_rules_d_audit_rules_init_module_b64_Line: '-a always,exit -F arch=b64 -S init_module,finit_module -F auid>=1000 -F auid!=unset -k module_chng'
+# R-258191 RHEL-09-654085
+rhel9STIG_stigrule_258191_Manage: True
+rhel9STIG_stigrule_258191__etc_audit_rules_d_audit_rules__usr_bin_chage_Line: '-a always,exit -F path=/usr/bin/chage -F perm=x -F auid>=1000 -F auid!=unset -k privileged-chage'
+# R-258192 RHEL-09-654090
+rhel9STIG_stigrule_258192_Manage: True
+rhel9STIG_stigrule_258192__etc_audit_rules_d_audit_rules__usr_bin_chsh_Line: '-a always,exit -F path=/usr/bin/chsh -F perm=x -F auid>=1000 -F auid!=unset -k priv_cmd'
+# R-258193 RHEL-09-654095
+rhel9STIG_stigrule_258193_Manage: True
+rhel9STIG_stigrule_258193__etc_audit_rules_d_audit_rules__usr_bin_crontab_Line: '-a always,exit -F path=/usr/bin/crontab -F perm=x -F auid>=1000 -F auid!=unset -k privileged-crontab'
+# R-258194 RHEL-09-654100
+rhel9STIG_stigrule_258194_Manage: True
+rhel9STIG_stigrule_258194__etc_audit_rules_d_audit_rules__usr_bin_gpasswd_Line: '-a always,exit -F path=/usr/bin/gpasswd -F perm=x -F auid>=1000 -F auid!=unset -k privileged-gpasswd'
+# R-258195 RHEL-09-654105
+rhel9STIG_stigrule_258195_Manage: True
+rhel9STIG_stigrule_258195__etc_audit_rules_d_audit_rules__usr_bin_kmod_Line: '-a always,exit -F path=/usr/bin/kmod -F perm=x -F auid>=1000 -F auid!=unset -k modules'
+# R-258196 RHEL-09-654110
+rhel9STIG_stigrule_258196_Manage: True
+rhel9STIG_stigrule_258196__etc_audit_rules_d_audit_rules__usr_bin_newgrp_Line: '-a always,exit -F path=/usr/bin/newgrp -F perm=x -F auid>=1000 -F auid!=unset -k priv_cmd'
+# R-258197 RHEL-09-654115
+rhel9STIG_stigrule_258197_Manage: True
+rhel9STIG_stigrule_258197__etc_audit_rules_d_audit_rules__usr_sbin_pam_timestamp_check_Line: '-a always,exit -F path=/usr/sbin/pam_timestamp_check -F perm=x -F auid>=1000 -F auid!=unset -k privileged-pam_timestamp_check'
+# R-258198 RHEL-09-654120
+rhel9STIG_stigrule_258198_Manage: True
+rhel9STIG_stigrule_258198__etc_audit_rules_d_audit_rules__usr_bin_passwd_Line: '-a always,exit -F path=/usr/bin/passwd -F perm=x -F auid>=1000 -F auid!=unset -k privileged-passwd'
+# R-258199 RHEL-09-654125
+rhel9STIG_stigrule_258199_Manage: True
+rhel9STIG_stigrule_258199__etc_audit_rules_d_audit_rules__usr_sbin_postdrop_Line: '-a always,exit -F path=/usr/sbin/postdrop -F perm=x -F auid>=1000 -F auid!=unset -k privileged-unix-update'
+# R-258200 RHEL-09-654130
+rhel9STIG_stigrule_258200_Manage: True
+rhel9STIG_stigrule_258200__etc_audit_rules_d_audit_rules__usr_sbin_postqueue_Line: '-a always,exit -F path=/usr/sbin/postqueue -F perm=x -F auid>=1000 -F auid!=unset -k privileged-unix-update'
+# R-258201 RHEL-09-654135
+rhel9STIG_stigrule_258201_Manage: True
+rhel9STIG_stigrule_258201__etc_audit_rules_d_audit_rules__usr_bin_ssh_agent_Line: '-a always,exit -F path=/usr/bin/ssh-agent -F perm=x -F auid>=1000 -F auid!=unset -k privileged-ssh'
+# R-258202 RHEL-09-654140
+rhel9STIG_stigrule_258202_Manage: True
+rhel9STIG_stigrule_258202__etc_audit_rules_d_audit_rules__usr_libexec_openssh_ssh_keysign_Line: '-a always,exit -F path=/usr/libexec/openssh/ssh-keysign -F perm=x -F auid>=1000 -F auid!=unset -k privileged-ssh'
+# R-258203 RHEL-09-654145
+rhel9STIG_stigrule_258203_Manage: True
+rhel9STIG_stigrule_258203__etc_audit_rules_d_audit_rules__usr_bin_su_Line: '-a always,exit -F path=/usr/bin/su -F perm=x -F auid>=1000 -F auid!=unset -k privileged-priv_change'
+# R-258204 RHEL-09-654150
+rhel9STIG_stigrule_258204_Manage: True
+rhel9STIG_stigrule_258204__etc_audit_rules_d_audit_rules__usr_bin_sudo_Line: '-a always,exit -F path=/usr/bin/sudo -F perm=x -F auid>=1000 -F auid!=unset -k priv_cmd'
+# R-258205 RHEL-09-654155
+rhel9STIG_stigrule_258205_Manage: True
+rhel9STIG_stigrule_258205__etc_audit_rules_d_audit_rules__usr_bin_sudoedit_Line: '-a always,exit -F path=/usr/bin/sudoedit -F perm=x -F auid>=1000 -F auid!=unset -k priv_cmd'
+# R-258206 RHEL-09-654160
+rhel9STIG_stigrule_258206_Manage: True
+rhel9STIG_stigrule_258206__etc_audit_rules_d_audit_rules__usr_sbin_unix_chkpwd_Line: '-a always,exit -F path=/usr/sbin/unix_chkpwd -F perm=x -F auid>=1000 -F auid!=unset -k privileged-unix-update'
+# R-258207 RHEL-09-654165
+rhel9STIG_stigrule_258207_Manage: True
+rhel9STIG_stigrule_258207__etc_audit_rules_d_audit_rules__usr_sbin_unix_update_Line: '-a always,exit -F path=/usr/sbin/unix_update -F perm=x -F auid>=1000 -F auid!=unset -k privileged-unix-update'
+# R-258208 RHEL-09-654170
+rhel9STIG_stigrule_258208_Manage: True
+rhel9STIG_stigrule_258208__etc_audit_rules_d_audit_rules__usr_sbin_userhelper_Line: '-a always,exit -F path=/usr/sbin/userhelper -F perm=x -F auid>=1000 -F auid!=unset -k privileged-unix-update'
+# R-258209 RHEL-09-654175
+rhel9STIG_stigrule_258209_Manage: True
+rhel9STIG_stigrule_258209__etc_audit_rules_d_audit_rules__usr_sbin_usermod_Line: '-a always,exit -F path=/usr/sbin/usermod -F perm=x -F auid>=1000 -F auid!=unset -k privileged-usermod'
+# R-258210 RHEL-09-654180
+rhel9STIG_stigrule_258210_Manage: True
+rhel9STIG_stigrule_258210__etc_audit_rules_d_audit_rules__usr_bin_mount_Line: '-a always,exit -F path=/usr/bin/mount -F perm=x -F auid>=1000 -F auid!=unset -k privileged-mount'
+# R-258211 RHEL-09-654185
+rhel9STIG_stigrule_258211_Manage: True
+rhel9STIG_stigrule_258211__etc_audit_rules_d_audit_rules__usr_sbin_init_Line: '-a always,exit -F path=/usr/sbin/init -F perm=x -F auid>=1000 -F auid!=unset -k privileged-init'
+# R-258212 RHEL-09-654190
+rhel9STIG_stigrule_258212_Manage: True
+rhel9STIG_stigrule_258212__etc_audit_rules_d_audit_rules__usr_sbin_poweroff_Line: '-a always,exit -F path=/usr/sbin/poweroff -F perm=x -F auid>=1000 -F auid!=unset -k privileged-poweroff'
+# R-258213 RHEL-09-654195
+rhel9STIG_stigrule_258213_Manage: True
+rhel9STIG_stigrule_258213__etc_audit_rules_d_audit_rules__usr_sbin_reboot_Line: '-a always,exit -F path=/usr/sbin/reboot -F perm=x -F auid>=1000 -F auid!=unset -k privileged-reboot'
+# R-258214 RHEL-09-654200
+rhel9STIG_stigrule_258214_Manage: True
+rhel9STIG_stigrule_258214__etc_audit_rules_d_audit_rules__usr_sbin_shutdown_Line: '-a always,exit -F path=/usr/sbin/shutdown -F perm=x -F auid>=1000 -F auid!=unset -k privileged-shutdown'
+# R-258215 RHEL-09-654205
+rhel9STIG_stigrule_258215_Manage: True
+rhel9STIG_stigrule_258215__etc_audit_rules_d_audit_rules__privileged_umount_Line: '-a always,exit -F arch=b32 -S umount -F auid>=1000 -F auid!=unset -k privileged-umount'
+# R-258216 RHEL-09-654210
+rhel9STIG_stigrule_258216_Manage: True
+rhel9STIG_stigrule_258216__etc_audit_rules_d_audit_rules__umount2_b64_Line: '-a always,exit -F arch=b64 -S umount2 -F auid>=1000 -F auid!=unset -k privileged-umount'
+rhel9STIG_stigrule_258216__etc_audit_rules_d_audit_rules__umount2_b32_Line: '-a always,exit -F arch=b32 -S umount2 -F auid>=1000 -F auid!=unset -k privileged-umount'
+# R-258217 RHEL-09-654215
+rhel9STIG_stigrule_258217_Manage: True
+rhel9STIG_stigrule_258217__etc_audit_rules_d_audit_rules__etc_sudoers_Line: '-w /etc/sudoers -p wa -k identity'
+# R-258218 RHEL-09-654220
+rhel9STIG_stigrule_258218_Manage: True
+rhel9STIG_stigrule_258218__etc_audit_rules_d_audit_rules__etc_sudoers_d__Line: '-w /etc/sudoers.d/ -p wa -k identity'
+# R-258219 RHEL-09-654225
+rhel9STIG_stigrule_258219_Manage: True
+rhel9STIG_stigrule_258219__etc_audit_rules_d_audit_rules__etc_group_Line: '-w /etc/group -p wa -k identity'
+# R-258220 RHEL-09-654230
+rhel9STIG_stigrule_258220_Manage: True
+rhel9STIG_stigrule_258220__etc_audit_rules_d_audit_rules__etc_gshadow_Line: '-w /etc/gshadow -p wa -k identity'
+# R-258221 RHEL-09-654235
+rhel9STIG_stigrule_258221_Manage: True
+rhel9STIG_stigrule_258221__etc_audit_rules_d_audit_rules__etc_security_opasswd_Line: '-w /etc/security/opasswd -p wa -k identity'
+# R-258222 RHEL-09-654240
+rhel9STIG_stigrule_258222_Manage: True
+rhel9STIG_stigrule_258222__etc_audit_rules_d_audit_rules__etc_passwd_Line: '-w /etc/passwd -p wa -k identity'
+# R-258223 RHEL-09-654245
+rhel9STIG_stigrule_258223_Manage: True
+rhel9STIG_stigrule_258223__etc_audit_rules_d_audit_rules__etc_shadow_Line: '-w /etc/shadow -p wa -k identity'
+# R-258224 RHEL-09-654250
+rhel9STIG_stigrule_258224_Manage: True
+rhel9STIG_stigrule_258224__etc_audit_rules_d_audit_rules__var_log_faillock_Line: '-w /var/log/faillock -p wa -k logins'
+# R-258225 RHEL-09-654255
+rhel9STIG_stigrule_258225_Manage: True
+rhel9STIG_stigrule_258225__etc_audit_rules_d_audit_rules__var_log_lastlog_Line: '-w /var/log/lastlog -p wa -k logins'
+# R-258227 RHEL-09-654265
+rhel9STIG_stigrule_258227_Manage: True
+rhel9STIG_stigrule_258227__etc_audit_rules_d_audit_rules_f2_Line: '-f 2'
+# R-258228 RHEL-09-654270
+rhel9STIG_stigrule_258228_Manage: True
+rhel9STIG_stigrule_258228__etc_audit_rules_d_audit_rules_loginuid_immutable_Line: '--loginuid-immutable'
+# R-258229 RHEL-09-654275
+rhel9STIG_stigrule_258229_Manage: True
+rhel9STIG_stigrule_258229__etc_audit_rules_d_audit_rules_e2_Line: '-e 2'
+# R-279936 RHEL-09-654097
+rhel9STIG_stigrule_279936_Manage: True
+rhel9STIG_stigrule_279936__etc_audit_rules_d_audit_rules__etc_cron_d__Line: '-w /etc/cron.d/ -p wa -k cronjobs'
+rhel9STIG_stigrule_279936__etc_audit_rules_d_audit_rules__var_spool_cron__Line: '-w /var/spool/cron/ -p wa -k cronjobs'
+# R-257816 RHEL-09-213105
+rhel9STIG_stigrule_257816_Manage: True
+rhel9STIG_stigrule_257816_user_max_user_namespaces_Value: 0
+rhel9STIG_stigrule_257816_user_max_user_namespaces_File: /etc/sysctl.d/99-user_max_user_namespaces.conf
