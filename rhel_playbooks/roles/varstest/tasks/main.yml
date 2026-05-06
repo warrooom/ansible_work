@@ -1,0 +1,14 @@
+# RHEL 9  V-257951
+- name: RHEL 9 V-257951 - Verify RHEL 9 is configured to prevent unrestricted mail relaying
+  ansible.builtin.shell:
+    cmd: |
+      postconf -n smtpd_client_restrictions
+  register: smtpd_client_result
+  ignore_errors: yes
+
+# Corrects V-257951 if detected
+- name: RHEL 9 V-257951 - Modify the postfix configuration file to restrict client connections to the local network with the following command
+  ansible.builtin.shell:
+    cmd: |
+      postconf -e 'smtpd_client_restrictions = permit_mynetworks,reject'
+  when: smtpd_client_result.stdout | length == 0
