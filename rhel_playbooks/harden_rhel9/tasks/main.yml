@@ -1,0 +1,348 @@
+# Addresses many outstanding STIG findings commonly found.
+#
+- name: Deploy the new system-auth from template
+  ansible.builtin.template:
+    src: system-auth.j2
+    dest: /etc/pam.d/system-auth
+    owner: root
+    group: root
+    mode: "0644"
+# Addresses RHEL9 V-258094 V-258096 V-258097 V-258099 V-258233
+- name: Deploy the new password-auth from template
+  ansible.builtin.template:
+    src: password-auth.j2
+    dest: /etc/pam.d/password-auth
+    owner: root
+    group: root
+    mode: "0644"
+
+# Removes tuned RHEL 9 V-257834
+- name: Removes tuned V-257834
+  ansible.builtin.dnf:
+    name: tuned
+    state: absent
+
+# RHEL 9  V-257823
+- name: Verify RHEL 9 is configured so that the cryptographic hashes of system files match vendor values
+  ansible.builtin.shell:
+    cmd: |
+      rpm -Va --noconfig | awk '$1 ~ /..5/ && $2 != "c"'
+  register: rpm_va_result
+  ignore_errors: yes
+  changed_when: false
+
+# Corrects V-257823 if detected
+- name: Runs correction script for stig_257823
+  ansible.builtin.import_tasks: stig_257823.yml
+  when: rpm_va_result.stdout | length > 0
+
+# RHEL 9  V-257888
+- name: RHEL 9 V-257888 - Verify that the owner, group, and mode of cron configuration files and directories match the operating system defaults
+  ansible.builtin.shell:
+    cmd: |
+      rpm --verify cronie crontabs | awk '! ($2 == "c" && $1 ~ /^.\..\.\.\.\..\./) {print $0}'
+  register: crontabs_result
+  ignore_errors: yes
+  changed_when: false
+
+# Corrects V-257888 if detected
+- name: RHEL 9 V-257888 - Restore the permissions of cron configuration files and directories to the operating system defaults
+  ansible.builtin.shell:
+    cmd: |
+      dnf reinstall -y cronie crontabs
+      rpm --setugids cronie crontabs
+      rpm --setperms cronie crontabs
+  when: crontabs_result.stdout | length > 0
+
+# RHEL 9 V-272488 - Installs postifx to satisfy STIG requirement
+- name: Installs postfix V-272488
+  ansible.builtin.dnf:
+    name: postfix
+    state: latest
+
+##################
+# RHEL 9  V-257951
+- name: RHEL 9 V-257951 - Verify RHEL 9 is configured to prevent unrestricted mail relaying
+  ansible.builtin.shell:
+    cmd: |
+      postconf -n smtpd_client_restrictions | grep "smtpd_client_restrictions = permit_mynetworks,reject"
+  register: smtpd_client_result
+  ignore_errors: yes
+
+# Corrects V-257951 if detected
+- name: RHEL 9 V-257951 - Modify the postfix configuration file to restrict client connections to the local network with the following command
+  ansible.builtin.shell:
+    cmd: |
+      postconf -e 'smtpd_client_restrictions = permit_mynetworks,reject'
+  when: smtpd_client_result.stdout | length == 0
+
+# V-257897 etc/shadow- file has mode "0000" V-257897 V-257912 V-257913
+- name: /etc/shadow- has mode "0000"
+  ansible.builtin.file:
+    path: /etc/shadow-
+    owner: root
+    group: root
+    mode: '0000'
+
+# V-257910 V-257911	V-257934	
+- name: /etc/shadow- has mode "0000"
+  ansible.builtin.file:
+    path: /etc/shadow
+    owner: root
+    group: root
+    mode: '0000'
+
+# RHEL 9 V-258091
+- name: password complexity module in the system-auth file is configured for three retries or less
+  ansible.builtin.lineinfile:
+    path: /etc/security/pwquality.conf
+    line: 'retry = 3'
+
+# V-257789 unique superusers name upon booting - Make into a handler once all are addressed.
+- name: Replace superusers from root to voltron
+  ansible.builtin.replace:
+    path: /etc/grub.d/01_users
+    regexp: "root"
+    replace: 'voltron'
+  register: changed_boot_su
+- name: Regenerate GRUB configuration
+  ansible.builtin.shell:
+    cmd: grub2-mkconfig -o /boot/grub2/grub.cfg --update-bls-cmdline
+  when: changed_boot_su.changed
+
+# RHEL 9 V-258131
+# pull sha256 when replacing DoD_PKE_CA_chain.pem
+- name: Replaces sssd_auth_ca_db.pem when update is made
+  ansible.builtin.copy:
+    src: DoD_PKE_CA_chain.pem
+    dest: /etc/sssd/pki/sssd_auth_ca_db.pem
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: V-258159 - Configure "auditd" service  to take action in the event of allocated audit record storage volume reaches 95 percent of the repository maximum audit record storage capacity.
+  ansible.builtin.lineinfile:
+    path: /etc/audit/auditd.conf
+    regexp: '^admin_space_left_action ='
+    line: 'admin_space_left_action = {{ rhel9STIG_stigrule_v258159_admin_space_left_action }}'
+    
+# RHEL 9 V-258068
+# RHEL 9 must automatically exit interactive command shell user sessions after 10 minutes of inactivity
+# Creates file if it does not exist
+- name: V-258068 automatically exit interactive command shell user sessions after 10 minutes of inactivity
+  ansible.builtin.lineinfile:
+    path: /etc/profile.d/tmout.sh
+    regexp: '^declare -xr TMOUT='
+    line: 'declare -xr TMOUT={{ rhel9STIG_stigrule_v248068_tmout }}'
+    create: true
+  when: rhel9_timeout_value_enforced == "true"
+  
+- name: V-258068 Remove 
+  ansible.builtin.lineinfile:
+    path: /etc/profile.d/tmout.sh
+    regexp: '^typeset -xr TMOUT='
+    state: absent
+  when: rhel9_timeout_value_enforced == "true"
+
+# RHEL 9 V-258078 SELINUX set to "Enforcing"
+- name: V-258078 SELINUX Configure RHEL 9 to verify correct operation of security functions
+  ansible.builtin.lineinfile:
+    path: /etc/selinux/config
+    regexp: '^SELINUX='
+    line: 'SELINUX={{ rhel9_stigrule_258078_selinux_enforcing }}'
+
+# RHEL 9 V-258077
+# RHEL 9 must terminate idle user sessions.
+# Creates file if it does not exist
+- name: V-258077 Verify RHEL 9 logs out sessions idle for 10 minutes
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/logind.conf
+    regexp: '^StopIdleSessionSec='
+    line: 'StopIdleSessionSec={{ rhel9STIG_stigrule_v258077_StopIdleSessionSec }}'
+  when: rhel9_timeout_value_enforced == "true"
+  notify: logind_restart
+# Removes legacy value as we sometimes see both
+- name: V-258077 Removing legacy value
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/logind.conf
+    regexp: '^StopIdleSessionSec=900'
+    state: absent
+  when: rhel9_timeout_value_enforced == "true"
+  notify: logind_restart
+
+## SSH Configureation
+## RHEL 9
+# V-257981
+- name: V-257981 Verify any SSH connection to RHEL 9 displays the Standard Mandatory DOD Notice and Consent Banner
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^Banner'
+    line: 'Banner {{ rhel9_stigrule_257981_ssh_banner }}'
+  notify: sshd_restart
+
+- name: V-257982 Configure RHEL 9 to log connection attempts
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^LogLevel'
+    line: 'LogLevel {{ rhel9_stigrule_257982_ssh_loglevel }}'
+  notify: sshd_restart
+
+- name: V-257983 accept public key authentication
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PubkeyAuthentication'
+    line: 'PubkeyAuthentication {{ rhel9_stigrule_257983_ssh_pubkeyauthentication }}'
+  notify: sshd_restart
+
+- name: V-257984 blank passwords
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PermitEmptyPasswords'
+    line: 'PermitEmptyPasswords {{ rhel9_stigrule_257984_ssh_permitemptypasswords }}'
+  notify: sshd_restart
+
+- name: V-257985 prevent SSH users from logging on directly as root
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PermitRootLogin'
+    line: 'PermitRootLogin {{ rhel9_stigrule_257985_ssh_permitrootlogin }}'
+  notify: sshd_restart
+
+- name: V-257986 UsePAM interface
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^UsePAM'
+    line: 'UsePAM {{ rhel9_stigrule_257986_ssh_usepam }}'
+  notify: sshd_restart
+
+- name: V-257992 not allow a noncertificate trusted host SSH logon
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^HostbasedAuthentication'
+    line: 'HostbasedAuthentication {{ rhel9_stigrule_257992_ssh_hostbasedauthentication }}'
+  notify: sshd_restart
+
+- name: V-257993 SSH daemon to not allow unattended or automatic logon
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PermitUserEnvironment'
+    line: 'PermitUserEnvironment {{ rhel9_stigrule_257993_ssh_permituserenvironment }}'
+  notify: sshd_restart
+
+- name: V-257994 force a frequent session key renegotiation for SSH connections
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^RekeyLimit'
+    line: 'RekeyLimit {{ rhel9_stigrule_257994_ssh_rekeylimit }}'
+  notify: sshd_restart
+  
+- name: V-257995 network connections associated with SSH traffic terminate after becoming unresponsive
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^ClientAliveCountMax'
+    line: 'ClientAliveCountMax {{ rhel9_stigrule_257995_ssh_clientalivecountmax }}'
+  notify: sshd_restart
+
+- name: V-257996 SSH traffic are terminated after 10 minutes of becoming unresponsive
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^clientaliveinterval'
+    line: 'clientaliveinterval {{ rhel9_stigrule_257996_ssh_clientaliveinterval }}'
+  notify: sshd_restart
+
+## Revisit V-257997 V-257998 V-257999 - File ownership
+## /etc/ssh/sshd_config root:root 0600
+- name: V-257997 V-257998 V-257999 sshd_config Permissions
+  ansible.builtin.file:
+    path: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: V-258002 Configure the SSH daemon to not allow compression
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^Compression'
+    line: 'Compression {{ rhel9_stigrule_258002_ssh_compression }}'
+  notify: sshd_restart
+
+- name: V-258003 Configure the SSH daemon to not allow GSSAPI authentication
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^GSSAPIAuthentication'
+    line: 'GSSAPIAuthentication {{ rhel9_stigrule_258003_ssh_gssapiauthentication }}'
+  notify: sshd_restart
+
+- name: V-258004 Configure the SSH daemon to not allow Kerberos authentication
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^KerberosAuthentication'
+    line: 'KerberosAuthentication {{ rhel9_stigrule_258004_ssh_kerberosauthentication }}'
+  notify: sshd_restart
+
+- name: V-258004 Configure the SSH daemon to not allow Kerberos authentication
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^KerberosAuthentication'
+    line: 'KerberosAuthentication {{ rhel9_stigrule_258004_ssh_kerberosauthentication }}'
+  notify: sshd_restart
+
+- name: V-258004 Configure the SSH daemon to not allow Kerberos authentication
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^KerberosAuthentication'
+    line: 'KerberosAuthentication {{ rhel9_stigrule_258004_ssh_kerberosauthentication }}'
+  notify: sshd_restart
+
+- name: V-258005 Configure the SSH daemon to not allow rhosts authentication
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^IgnoreRhosts'
+    line: 'IgnoreRhosts {{ rhel9_stigrule_258005_ssh_ignorerhosts }}'
+  notify: sshd_restart
+
+- name: V-258006 Configure the SSH daemon to not allow known hosts authentication
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^IgnoreUserKnownHosts'
+    line: 'IgnoreUserKnownHosts {{ rhel9_stigrule_258006_ssh_ignoreuserknownhosts }}'
+  notify: sshd_restart
+
+- name: V-258007 Configure the SSH daemon to not allow X11 forwarding
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^X11forwarding'
+    line: 'X11forwarding {{ rhel9_stigrule_258007_ssh_x11forwarding }}'
+  notify: sshd_restart
+
+- name: V-258008 Configure the SSH daemon to perform strict mode checking of home directory configuration files.
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^StrictModes'
+    line: 'StrictModes {{ rhel9_stigrule_258008_ssh_strictmodes }}'
+  notify: sshd_restart
+  
+- name: V-258009 Configure the SSH daemon to provide users with feedback on when account accesses last occurred.
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PrintLastLog'
+    line: 'PrintLastLog {{ rhel9_stigrule_258009_ssh_printlastlog }}'
+  notify: sshd_restart
+
+- name: V-258011 Configure the SSH daemon to provide users with feedback on when account accesses last occurred.
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^X11UseLocalhost'
+    line: 'X11UseLocalhost {{ rhel9_stigrule_258011_ssh_x11uselocalhost }}'
+  notify: sshd_restart
+
+
+# /etc/sudoers.d/admins:%{wheel} ALL=(ALL) TYPE=sysadm_t ROLE=sysadm_r ALL
+# root:root 0400
+# RHEL 9 V-272496
+# Tested on hap01
+
+
+# ./99-deny-everything.rules:2:deny perm=any all : all
+# -rw-r--r--. 1 root fapolicyd 92 Jan 16 15:13 99-deny-everything.rules
+# RHEL 9 V-270180
