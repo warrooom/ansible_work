@@ -1,0 +1,5 @@
+# Confirm group variables for elastic
+c2soc_group_user_management:
+  - name: "user"
+    groups: ["wheel"]
+    ssh_key: "ssh-rsa <key"
