@@ -1,0 +1,59 @@
+# Install the Trellix agent if not installed
+# 
+
+- name: Make install directory
+  ansible.builtin.file:
+    state: directory
+    path: "{{ tagent_file_agent_tmp_install }}"
+    mode: '0755'
+
+# Move agent tar to server
+- name: Copy trellix agent to target
+  ansible.builtin.copy:
+    src: "{{ tagent_file_agent }}"
+    dest: "{{ tagent_file_agent_tmp_install }}/{{ tagent_file_agent }}"
+  
+- name: Make trellix agent sh executable
+  ansible.builtin.file:
+    path: "{{ tagent_file_agent_tmp_install }}/{{ tagent_file_agent }}"
+    mode: '0755'
+
+- name: Exempts root from password expiration which blocks install
+  ansible.builtin.command:
+    cmd: "chage -E -1 -M -1 -I -1 -m 0 root"
+
+- name: Installing trellix agent
+  ansible.builtin.command:
+    cmd: "bash {{ tagent_file_agent_tmp_install }}/{{ tagent_file_agent }} -i -r"
+
+- name: Ensure McAfee agent service is running and enabled
+  ansible.builtin.service:
+    name: mcafee.ma.service
+    enabled: yes
+    state: started
+
+- name: Check if /opt/pkg exists
+  stat:
+    path: "{{ tagent_file_agent_tmp_install }}"
+  register: dir_status
+
+- name: Remove /opt/pkg if it exists
+  file:
+    path: "{{ tagent_file_agent_tmp_install }}"
+    state: absent
+  when: dir_status.stat.exists
+
+- name: Add epo wake Rules
+  ansible.posix.firewalld:
+    port: 591/tcp
+    zone: drop
+    permanent: true
+    state: enabled
+
+- name: Reload firewalld
+  ansible.builtin.command:
+    cmd: "firewall-cmd --reload"
+  
+- name: Run a collect and send to ensure endpoint propigation
+  ansible.builtin.command:
+    cmd: "/opt/McAfee/agent/bin/cmdagent -p"
