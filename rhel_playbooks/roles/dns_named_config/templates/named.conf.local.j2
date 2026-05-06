@@ -1,0 +1,35 @@
+{% for fwd_zone in dns_bind_forward_zones %}
+zone "{{ fwd_zone.name }}" {
+        type forward;
+        forwarders {
+                {{ fwd_zone.forwarders | join('; ') }};
+                };
+        forward only;
+        };
+{% endfor %}
+
+
+# Dynamic creation
+{% for rev_zone in dns_bind_forward_zones %}
+{% if rev_zone.name == "dom4" %}
+{% for sub in rev_zone.rev_subnets %}
+zone "{{ sub }}.in-addr.arpa" {type forward; forwarders {
+                {{ rev_zone.forwarders | join('; ') }};
+                }; forward only; };
+{% endfor %}
+{% endif %}
+{% endfor %}
+
+{% for zone in dns_block_zone_list %}
+{% if zone.startswith('#') %}
+{{ zone }}
+{% else %}
+zone  "{{ zone }}" {type master; file "/var/named/dnsblock.zone";};
+{% endif %}
+{% endfor %}
+
+
+###=== TOP LEVEL DOMAINS
+{% for zone in dns_block_top_level_domains_zone_list %}
+zone  "{{ zone }}" {type master; file "/var/named/dnsblock.zone";};
+{% endfor %}
