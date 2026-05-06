@@ -1,0 +1,50 @@
+# Generte a new CSR for the assigned machine
+- name: Snapshot the current running config
+  ansible.builtin.stat:
+    path: ~/{{ ansible_facts['hostname'] }}
+  register: currnet_csr
+
+- name: Backup current csr directory
+  ansible.builtin.copy:
+    src: ~/{{ ansible_facts['hostname'] }}
+    dest: ~/{{ ansible_facts['hostname'] }}.bak
+    remote_src: true
+    force: true
+    owner: ansible
+    group: ansible
+    mode: "0660"
+  when: currnet_csr.stat.exists
+
+- name: Delete old csr directory
+  ansible.builtin.file:
+    path: ~/{{ ansible_facts['hostname'] }}
+    state: absent
+  when: currnet_csr.stat.exists
+
+- name: Make results directory
+  ansible.builtin.file:
+    state: directory
+    path: ~/{{ ansible_facts['hostname'] }}
+    owner: ansible
+    mode: '0755'
+
+- name: Make CSR Template
+  ansible.builtin.template:
+    src: templates/csrgen.j2
+    dest: ~/{{ ansible_facts['hostname'] }}/{{ ansible_facts['hostname'] }}.cnf
+
+- name: Generate new host keypair
+  ansible.builtin.command:
+    cmd: openssl genrsa -out ~/{{ ansible_facts['hostname'] }}/{{ ansible_facts['hostname'] }}.key {{ csr_req_openssl_genrsa_keysize }}
+    creates: ~/{{ ansible_facts['hostname'] }}/{{ ansible_facts['hostname'] }}.key
+
+- name: Generate new CSR
+  ansible.builtin.command:
+    cmd: openssl req -new -key ~/{{ ansible_facts['hostname'] }}/{{ ansible_facts['hostname'] }}.key -out ~/{{ ansible_facts['hostname'] }}/{{ ansible_facts['hostname'] }}.csr -config ~/{{ ansible_facts['hostname'] }}/{{ ansible_facts['hostname'] }}.cnf
+    creates: ~/{{ ansible_facts['hostname'] }}/{{ ansible_facts['hostname'] }}.csr
+
+- name: Retrieving new csr
+  ansible.builtin.fetch:
+    src: ~/{{ ansible_facts['hostname'] }}/{{ ansible_facts['hostname'] }}.csr
+    dest: /home/aap/
+    flat: yes
