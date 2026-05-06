@@ -1,0 +1,30 @@
+- hosts: all
+  gather_facts: no
+  become: yes
+
+  tasks:
+  - name: Gather service facts
+    ansible.builtin.setup:
+      gather_subset:
+        - '!all'
+        - 'min'
+
+  - name: Call the harden_rhel9 role based on distribution
+    ansible.builtin.import_role:
+      name: harden_rhel9
+    when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "9"
+  - name: Call the harden_rhel8 role based on distribution
+    ansible.builtin.import_role:
+      name: harden_rhel8
+    when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "8"
+
+  - name: Determine if /var/McAfee/.msgbus/ exists
+    ansible.builtin.stat:
+      path: /var/McAfee/.msgbus/
+    register: msgbus_stat
+# Rhel9 V-257930 and V-257931 - RHEL8 V-230327 V-230326	- Removes leftover McAfee /var/McAfee/.msgbus/ files without owner
+  - name: Removes leftover McAfee /var/McAfee/.msgbus/ files without owner
+    ansible.builtin.shell:
+      cmd: |
+        find '/var/McAfee/.msgbus/' -xdev -nogroup -exec rm -f {} \;
+    when: msgbus_stat.stat.exists
