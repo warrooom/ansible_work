@@ -1,0 +1,72 @@
+# Placeholder for the uninstall task
+# 
+#  974  rpm -qa|grep -i mcaffee
+#  975  rpm -qa|grep -i mcafee
+#  976  rpm -e MFEdx
+#  977  rpm -e McAfeeTP
+#  978  rpm -e McAfeeTP --noscripts
+#  979  rpm -e McAfeeESP --noscripts
+#  980  rpm -e McAfeeESPFileAccess --noscripts
+#  981  rpm -e McAfeeESPAac
+#  982  rpm -qa|grep -i mcafee
+#  983  rpm -e McAfeeESP
+#  984  rpm -e McAfeeRT
+#  985  rpm -e McAfeeRt
+#  986  rpm -e MFErt
+#  987  rpm -e MFEcma
+#  988  rpm -e MFEdx
+#  989  rpm -e MFErt
+# 1000  history|grep rpm
+#
+#
+#c2soc-e-eml01
+#rpm -e McAfeeTP --noscripts
+#rpm -e McAfeeESP --noscripts
+#rpm -e McAfeeESPFileAccess --noscripts
+#rpm -e McAfeeESPAac
+#rpm -e McAfeeRt
+#rpm -e MFEcma
+#rpm -e MFEdx
+#
+#
+- name: This ensures uninstall is running
+  ansible.builtin.debug:
+    msg: "Uninstall is running"
+
+- name: Uninstalls packages with noscripts
+  ansible.builtin.command:
+    cmd: "rpm -e --noscripts {{ item }}"
+  loop: "{{ mfe_packages_to_remove_noscript }}"
+  ignore_errors: true
+
+- name: Uninstalls packages remaining
+  ansible.builtin.dnf:
+    name: "{{ item }}"
+    state: absent
+  loop: "{{ mfe_packages_to_remove }}"
+  ignore_errors: true
+
+- name: Kills remaining McAfee processes
+  ansible.builtin.shell: kill -9 $(ps -ef|grep McAfee|grep -v grep|awk {'print $2'})
+
+- name: Remove directory
+  ansible.builtin.file:
+   path: "{{ tagent_install_path_dir }}"
+   state: absent
+   force: true
+
+- name: Kills remaining McAfee processes
+  ansible.builtin.shell: kill -9 $(ps -ef|grep McAfee|grep -v grep|awk {'print $2'})
+
+- name: Remove /var/McAfee/ directory
+  ansible.builtin.file:
+   path: "/var/McAfee/"
+   state: absent
+   force: true
+
+- name: Remove Wake port from firewalld
+  ansible.posix.firewalld:
+    port: 591/tcp
+    zone: drop
+    permanent: true
+    state: disabled
