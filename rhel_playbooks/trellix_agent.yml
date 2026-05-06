@@ -1,0 +1,6 @@
+# Quick way to remove trellix agents from hosts
+- hosts: all
+  gather_facts: no
+  become: yes
+  roles:
+    - trellix_agent
