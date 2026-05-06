@@ -1,0 +1,72 @@
+# Install the Commvault file agent if not installed
+- name: Check if Commvault rule exists
+  ansible.builtin.stat:
+    path: "{{ cv_fapolicyfile }}"
+  register: fa_dir_stat
+
+- name: Generates and populates the fapolicy rules for Commvault File Agent
+  ansible.builtin.blockinfile:
+    path: "{{ cv_fapolicyfile }}"
+    block: "{{ cv_cfa_rule_list }}"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK"
+    create: true
+    owner: root
+    group: fapolicyd
+    mode: '0644'
+  register: rule_added
+
+- name: Restart fapolicyd
+  ansible.builtin.service:
+    name: fapolicyd
+    state: restarted
+  when: rule_added.changed
+
+- name: Check if commvault file agent is installed
+  ansible.builtin.stat:
+    path: /etc/systemd/system/commvault.Instance001.service
+  register: cv_installed
+    
+# Move agent tar to server
+- name: Extract Commvault File Agent to target
+  ansible.builtin.unarchive:
+    src: "{{ cv_file_agent }}"
+    dest: /opt
+  when: not cv_installed.stat.exists
+  
+- name: Make Commvault File Agent directory executable
+  ansible.builtin.file:
+    path: /opt/pkg
+    mode: '0755'
+  when: not cv_installed.stat.exists
+        
+- name: Make tmp install directory
+  ansible.builtin.file:
+    state: directory
+    path: "{{ cv_file_agent_tmp_install }}"
+    mode: '0755'
+  when: not cv_installed.stat.exists
+
+- name: Installing Commvault File Agent
+  ansible.builtin.command:
+    cmd: /opt/pkg/silent_install -tmpdir "{{ cv_file_agent_tmp_install }}"
+  when: not cv_installed.stat.exists
+
+- name: Ensure Commvault File agent service is running and enabled
+  ansible.builtin.service:
+    name: commvault.Instance001.service
+    enabled: yes
+    state: started
+  when: not cv_installed.stat.exists
+
+- name: Check if /opt/pkg exists
+  stat:
+    path: /opt/pkg
+  register: dir_status
+
+- name: Remove /opt/pkg if it exists
+  file:
+    path: /opt/pkg
+    state: absent
+  when: dir_status.stat.exists and not cv_installed.stat.exists
+
+#Uninstall cvpkgrm -i Instance001
