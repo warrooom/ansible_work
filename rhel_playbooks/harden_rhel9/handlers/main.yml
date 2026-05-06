@@ -1,0 +1,9 @@
+- name: logind_restart
+  service:
+    name: systemd-logind
+    state: restarted
+
+- name: sshd_restart
+  service:
+    name: sshd
+    state: restarted
