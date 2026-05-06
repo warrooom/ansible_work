@@ -1,4 +1,4 @@
-# Confirm group variables for elastic
+# Confirm group variables for ansible
 c2soc_group_user_management:
   - name: "user"
     groups: ["wheel"]
