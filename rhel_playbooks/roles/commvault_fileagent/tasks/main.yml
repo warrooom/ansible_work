@@ -1,0 +1,14 @@
+# Install or uninstall by tags method
+# Pass the install tag to this playbook to install the commvault agent.
+# Otherwise pass the uninstall to uninstall. Not passing a tag will result in nothing happening.
+- name: Run the install commvault file agent
+  ansible.builtin.import_tasks: install.yml
+  tags:
+    - install
+    - never
+
+- name: Will uninstall the commvault file agent
+  ansible.builtin.import_tasks: uninstall.yml
+  tags:
+    - uninstall
+    - never
