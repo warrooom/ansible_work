@@ -1,0 +1,55 @@
+# Addresses RHEL8
+
+# RHEL 8 V-230229
+# pull sha256 when replacing DoD_PKE_CA_chain.pem
+- name: Replaces sssd_auth_ca_db.pem when update is made
+  ansible.builtin.copy:
+    src: DoD_PKE_CA_chain.pem
+    dest: /etc/sssd/pki/sssd_auth_ca_db.pem
+    owner: root
+    group: root
+    mode: '0600'
+
+# Removes tuned RHEL 8 V-230561
+- name: Removes tuned V-230561
+  ansible.builtin.dnf:
+    name: tuned
+    state: absent
+
+# RHEL 8 V-279929
+# RHEL 8 must automatically exit interactive command shell user sessions after 10 minutes of inactivity
+# Creates file if it does not exist
+- name: V-279929 automatically exit interactive command shell user sessions after 10 minutes of inactivity
+  ansible.builtin.lineinfile:
+    path: /etc/profile.d/tmout.sh
+    regexp: '^declare -xr TMOUT='
+    line: 'declare -xr TMOUT={{ rhel8STIG_stigrule_v279929_tmout }}'
+    create: true
+  when: rhel8_timeout_value_enforced == "true"
+
+# RHEL 8 V-257258
+# RHEL 8 must terminate idle user sessions.
+# Creates file if it does not exist
+- name: V-257258 Verify RHEL 8 logs out sessions idle for 10 minutes
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/logind.conf
+    regexp: '^StopIdleSessionSec='
+    line: 'StopIdleSessionSec={{ rhel8STIG_stigrule_v257258_StopIdleSessionSec }}'
+  when: rhel8_timeout_value_enforced == "true"
+  notify: logind_restart
+
+# Audit Rules
+# Corrects for missing audit found
+- name: V-274877 Configure RHEL 8 to audit the execution of any system call made by cron as root or as any privileged user.
+  ansible.builtin.lineinfile:
+    path: /etc/audit/rules.d/privileged.rules
+    regexp: '^-w /etc/cron.d -p wa -k cronjobs'
+    insertafter: '^-a always,exit -F path=/usr/bin/crontab -F perm=x -F auid>=1000 -F auid!=unset -F key=privileged'
+    line: '-w /etc/cron.d -p wa -k cronjobs'
+
+- name: V-274877 Configure RHEL 8 to audit the execution of any system call made by cron as root or as any privileged user.
+  ansible.builtin.lineinfile:
+    path: /etc/audit/rules.d/privileged.rules
+    regexp: '^-w /var/spool/cron -p wa -k cronjobs'
+    insertafter: '^-w /etc/cron.d -p wa -k cronjobs'
+    line: '-w /var/spool/cron -p wa -k cronjobs'
