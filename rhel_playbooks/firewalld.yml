@@ -1,0 +1,27 @@
+- hosts: all
+  gather_facts: no
+  become: yes
+
+  tasks:
+  - name: Remove old Rubrik Rules
+    ansible.posix.firewalld:
+      port: 12801/tcp
+      zone: unicorns
+      permanent: true
+      state: disabled
+
+  - name: Remove old Rubrik Rules
+    ansible.posix.firewalld:
+      port: 12800/tcp
+      zone: unicorns
+      permanent: true
+      state: disabled
+
+  - name: Corrects the firewalld rules on Elastic nodes
+    ansible.builtin.import_role:
+      name: elastic_nodes
+    when: "'es-nodes' in group_names"
+
+  - name: Reload firewalld
+    ansible.builtin.command:
+      cmd: "firewall-cmd --reload"
