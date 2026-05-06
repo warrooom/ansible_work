@@ -1,0 +1,4 @@
+- name: auditd_restart
+  command: service auditd restart
+- name: sysctl_load_settings
+  command: sysctl --system
