@@ -1,0 +1,38 @@
+# Install the Commvault file agent if not installed
+# Manual uninsta string cvpkgrm -i Instance001
+- name: Check if Commvault rule exists
+  ansible.builtin.stat:
+    path: "{{ cv_fapolicyfile }}"
+  register: fa_dir_stat
+
+- name: Remove fapolicy file if exists
+  ansible.builtin.file:
+    path: "{{ cv_fapolicyfile }}"
+    state: absent
+  when: fa_dir_stat.stat.exists
+
+- name: Restart fapolicyd
+  ansible.builtin.service:
+    name: fapolicyd
+    state: restarted
+
+- name: Check if commvault file agent is installed
+  ansible.builtin.stat:
+    path: /etc/systemd/system/commvault.Instance001.service
+  register: cv_installed
+
+- name: Uninstalling Commvault File Agent
+  ansible.builtin.command:
+    cmd: cvpkgrm -i Instance001
+  when: cv_installed.stat.exists
+
+- name: Check if /opt/pkg exists
+  stat:
+    path: /opt/pkg
+  register: dir_status
+
+- name: Remove /opt/pkg if it exists
+  file:
+    path: /opt/pkg
+    state: absent
+  when: dir_status.stat.exists and cv_installed.stat.exists
