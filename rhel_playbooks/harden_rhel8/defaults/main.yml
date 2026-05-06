@@ -1,0 +1,5 @@
+#Configured default logind.conf
+rhel8STIG_stigrule_v279929_tmout: "600" 
+rhel8STIG_stigrule_v257258_StopIdleSessionSec: "600"
+# Set to false when ssh timeouts are an issue
+rhel8_timeout_value_enforced: "true"
