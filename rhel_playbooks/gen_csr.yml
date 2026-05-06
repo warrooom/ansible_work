@@ -1,0 +1,5 @@
+- hosts: all
+  gather_facts: yes
+  become: no
+  roles:
+    - csr_gen
