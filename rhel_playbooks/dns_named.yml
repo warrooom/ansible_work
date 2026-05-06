@@ -1,0 +1,5 @@
+- hosts: dns_forwarders
+  gather_facts: no
+  become: yes
+  roles:
+    - dns_named_config
