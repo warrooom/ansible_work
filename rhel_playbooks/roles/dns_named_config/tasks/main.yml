@@ -1,0 +1,56 @@
+# Manages the named.conf file for the DNS Forwarders
+#
+- name: dns configuration management with rollback  
+  block:  
+  - name: Snapshot the current running config
+    ansible.builtin.stat:
+      path: "{{ dns_named_config_path }}"
+    register: currnet_config
+
+  - name: Backup current config
+    ansible.builtin.copy:
+      src: "{{ dns_named_config_path }}"
+      dest: "{{ dns_named_backup_path }}"
+      remote_src: true
+      force: true
+      owner: named
+      group: named
+      mode: "0600"
+    when: currnet_config.stat.exists
+
+  - name: Deploy the new named.conf from template
+    ansible.builtin.template:
+      src: named.conf.local.j2
+      dest: "{{ dns_named_config_path }}"
+      owner: named
+      group: named
+      mode: "0600"
+      validate: 'named-checkconf %s'
+    notify: reload named      
+
+  - name: Force handler to running
+    ansible.builtin.meta: flush_handlers
+
+  - name: Verify named service came back after reload
+    ansible.builtin.service_facts: 
+
+  - name: Fail when named is not running
+    ansible.builtin.fail:
+      msg: "named failed to start after config change"
+    when: ansible_facts.services['named-chroot.service'].state != 'running'
+
+  rescue:
+  - name: Restore Backup
+    ansible.builtin.copy:
+      src: "{{ dns_named_backup_path }}"
+      dest: "{{ dns_named_config_path }}"
+      owner: named
+      group: named
+      mode: "0600"
+      force: true
+      remote_src: true
+
+  - name: Restart named-chroot with restored config
+    ansible.builtin.service:
+      name: "{{ dns_service }}"
+      state: restarted
