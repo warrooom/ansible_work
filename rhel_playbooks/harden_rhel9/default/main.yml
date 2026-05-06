@@ -1,0 +1,39 @@
+#Configured default logind.conf
+rhel9STIG_stigrule_etc_systemd_logind_conf: '/etc/systemd/logind.conf'
+
+# Vul ID: V-258131 RHEL 9, for PKI-based authentication, must validate certificates by constructing a certification path (which includes status information) to an accepted trust anchor.
+sssd_auth_ca_db_checksum: "D535A81E8B1AF97020B7D88419DAE0B9F70A0F4A10908D5574682CFD00B7B85F"
+
+#Configured default logind.conf
+rhel9STIG_stigrule_stig_257823_script: 'stig_257823.sh'
+rhel9STIG_stigrule_stig_257823_tmp: "/opt/stig_257823"
+
+rhel9STIG_stigrule_v248068_tmout: "600" 
+rhel9STIG_stigrule_v258077_StopIdleSessionSec: "600"
+
+# Enables or disabled timeout for long installs. Affects V-258068
+rhel9_timeout_value_enforced: "true"
+rhel9_stigrule_258078_selinux_enforcing: "enforcing"
+rhel9STIG_stigrule_v258159_admin_space_left_action: "single"
+
+## SSH Settings
+rhel9_stigrule_257981_ssh_banner: "/etc/issue"
+rhel9_stigrule_257982_ssh_loglevel: "VERBOSE"
+rhel9_stigrule_257983_ssh_pubkeyauthentication: "yes"
+rhel9_stigrule_257984_ssh_permitemptypasswords: "no"
+rhel9_stigrule_257985_ssh_permitrootlogin: "no"
+rhel9_stigrule_257986_ssh_usepam: "yes"
+rhel9_stigrule_257992_ssh_hostbasedauthentication: "no"
+rhel9_stigrule_257993_ssh_permituserenvironment: "no"
+rhel9_stigrule_257994_ssh_rekeylimit: "1G 1h"
+rhel9_stigrule_257995_ssh_clientalivecountmax: "1"
+rhel9_stigrule_257996_ssh_clientaliveinterval: "600"
+rhel9_stigrule_258002_ssh_compression: "no"
+rhel9_stigrule_258003_ssh_gssapiauthentication: "no"
+rhel9_stigrule_258004_ssh_kerberosauthentication: "no"
+rhel9_stigrule_258005_ssh_ignorerhosts: "yes"
+rhel9_stigrule_258006_ssh_ignoreuserknownhosts: "yes"
+rhel9_stigrule_258007_ssh_x11forwarding: "no"
+rhel9_stigrule_258008_ssh_strictmodes: "yes"
+rhel9_stigrule_258009_ssh_printlastlog: "yes"
+rhel9_stigrule_258011_ssh_x11uselocalhost: "yes"
