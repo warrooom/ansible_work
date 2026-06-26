@@ -1,0 +1,34 @@
+- name: Stop logstash service
+  service:
+    name: logstash
+    state: stopped
+  register: agent_status
+  until: agent_status.state == "stopped"
+  retries: 2
+  delay: 5
+
+- name: Copy rpm local
+  ansible.builtin.copy:
+    src: "logstash-{{ elastic_upgrade_logstash_rpm_version }}-x86_64.rpm"
+    dest: /opt/
+    mode: '0644'
+
+- name: Install logstash when version differs
+  ansible.builtin.dnf:
+    name: "/opt/logstash-{{ elastic_upgrade_logstash_rpm_version }}-x86_64.rpm"
+    state: present
+
+- name: Remove rpm local
+  ansible.builtin.file:
+    path: "/opt/logstash-{{ elastic_upgrade_logstash_rpm_version }}-x86_64.rpm"
+    state: absent
+
+- name: Ensure logstash is enabled and running
+  service:
+    name: logstash
+    state: started
+    enabled: yes
+  register: agent_status
+  until: agent_status.state == "started"
+  retries: 6
+  delay: 10
