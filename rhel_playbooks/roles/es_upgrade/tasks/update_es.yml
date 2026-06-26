@@ -1,0 +1,84 @@
+## Rolling reboot process for Elastic
+
+- name: Disable shard allocation for the Elastic cluster
+  ansible.builtin.uri:
+    url: "https://c2soc-e-emn01.ccsos.cnic.navy.mil:9200/_cluster/settings"
+    return_content: true
+    method: PUT
+    body_format: json
+    body:
+      persistent:
+        cluster.routing.allocation.enable: "primaries"
+    headers:
+     Authorization: "ApiKey {{ elastic_key }}"
+  retries: 3
+  delay: 5
+  register: shard_disable_res
+  when: "'es-nodes' in group_names"
+
+- name: Stop elasticsearch service
+  service:
+    name: elasticsearch
+    state: stopped
+  register: agent_status
+  until: agent_status.state == "stopped"
+  retries: 2
+  delay: 5
+  when: "'es-nodes' in group_names and 'es-nfs-nodes' not in group_names"
+
+- name: Copy rpm local
+  ansible.builtin.copy:
+    src: "elasticsearch-{{ elastic_upgrade_elasticsearch_rpm_version }}-x86_64.rpm"
+    dest: /opt/
+    mode: '0644'
+
+- name: Install elasticsearch when version differs
+  ansible.builtin.dnf:
+    name: "/opt/elasticsearch-{{ elastic_upgrade_elasticsearch_rpm_version }}-x86_64.rpm"
+    state: present
+
+- name: Remove rpm local
+  ansible.builtin.file:
+    path: "/opt/elasticsearch-{{ elastic_upgrade_elasticsearch_rpm_version }}-x86_64.rpm"
+    state: absent
+
+- name: Ensure elasticsearch is enabled and running
+  service:
+    name: elasticsearch
+    state: started
+    enabled: yes
+  register: agent_status
+  until: agent_status.state == "started"
+  retries: 6
+  delay: 10
+  when: "'es-nodes' in group_names and 'es-nfs-nodes' not in group_names"
+
+- name: Enable shard allocation for the Elastic cluster
+  ansible.builtin.uri:
+    url: "https://c2soc-e-emn01.ccsos.cnic.navy.mil:9200/_cluster/settings"
+    return_content: true
+    method: PUT
+    body_format: json
+    body:
+      persistent:
+        cluster.routing.allocation.enable: null
+    headers:
+     Authorization: "ApiKey {{ elastic_key }}"
+  retries: 3
+  delay: 5
+  register: shard_enable_res
+  when: "'es-nodes' in group_names"
+
+- name: Check elastic cluster health
+  ansible.builtin.uri:
+    url: "https://c2soc-e-emn01.ccsos.cnic.navy.mil:9200/_cat/health"
+    return_content: true
+    method: GET
+    headers:
+     Authorization: "ApiKey {{ elastic_key }}"
+     return_content: yes
+  retries: 35
+  delay: 60
+  register: this
+  failed_when: "this is failed or 'green' not in this.content"
+  when: "'es-nodes' in group_names"
