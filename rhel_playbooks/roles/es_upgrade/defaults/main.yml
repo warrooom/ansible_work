@@ -1,0 +1,9 @@
+# Vars for elastic upgrade
+elastic_upgrade_elasticsearch_old_rpm: "elasticsearch-8.19.3-1.x86_64"
+elastic_upgrade_elasticsearch_rpm: "elasticsearch-8.19.16-x86_64"
+elastic_upgrade_kibana_rpm: "kibana-8.19.16-x86_64.rpm"
+elastic_upgrade_logstash_rpm: "logstash-8.19.16-x86_64.rpm"
+# In use
+elastic_upgrade_elasticsearch_rpm_version: "9.4.2"
+elastic_upgrade_kibana_rpm_version: "9.4.2"
+elastic_upgrade_logstash_rpm_version: "9.4.2"
