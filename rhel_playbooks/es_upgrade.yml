@@ -1,0 +1,6 @@
+- hosts: es-frozen-nodes,es-cold-nodes,es-hot-nodes,es-master-nodes,es
+  gather_facts: no
+  become: yes
+  serial: 1 
+  roles:
+    - es_upgrade
