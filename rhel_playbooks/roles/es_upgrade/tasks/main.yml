@@ -1,0 +1,48 @@
+# Upgrade elastic stack
+
+- name: Get installed version of elastic search
+  ansible.builtin.shell: "rpm -q elasticsearch-{{ elastic_upgrade_elasticsearch_rpm_version }}-1.x86_64"
+  register: installed_easticsearch_pkg
+  failed_when: false
+  changed_when: false
+  when: "'es-nodes' in group_names and 'es-nfs-nodes' not in group_names"
+
+#- name: Show of version is not installed
+#  ansible.builtin.debug:
+#    var: installed_easticsearch_pkg
+#  when: "'es-nodes' in group_names and 'es-nfs-nodes' not in group_names"
+
+# package elastic_upgrade_elasticsearch_rpm is not installed
+- name: Updates elastic search
+  ansible.builtin.import_tasks: update_es.yml
+  when:
+    - installed_easticsearch_pkg.stdout is defined
+    - installed_easticsearch_pkg.stdout != 'elasticsearch-' ~ elastic_upgrade_elasticsearch_rpm_version ~ '-1.x86_64' and 'es-nodes' in group_names and 'es-nfs-nodes' not in group_names
+
+# kibana-8.19.3-1.x86_64
+- name: Get installed version of kibana
+  ansible.builtin.shell: "rpm -q elasticsearch-{{ elastic_upgrade_kibana_rpm_version }}-1.x86_64"
+  register: installed_kibana_pkg
+  failed_when: false
+  changed_when: false
+  when: "'es-kibana' in group_names"
+
+- name: Updates kibana
+  ansible.builtin.import_tasks: update_kibana.yml
+  when:
+    - installed_kibana_pkg.stdout is defined
+    - installed_kibana_pkg.stdout != 'kibana-' ~ elastic_upgrade_kibana_rpm_version ~ '-1.x86_64' and 'es-kibana' in group_names
+ 
+# logstash
+- name: Get installed version of logstash
+  ansible.builtin.shell: "rpm -q logstash-{{ elastic_upgrade_logstash_rpm_version }}-1.x86_64"
+  register: installed_logstash_pkg
+  failed_when: false
+  changed_when: false
+  when: "'es-logstash' in group_names"
+
+- name: Updates logstash
+  ansible.builtin.import_tasks: update_logstash.yml
+  when:
+    - installed_logstash_pkg.stdout is defined
+    - installed_logstash_pkg.stdout != 'logstash-' ~ elastic_upgrade_logstash_rpm_version ~ '-1.x86_64' and 'es-logstash' in group_names
