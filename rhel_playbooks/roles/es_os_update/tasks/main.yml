@@ -1,0 +1,18 @@
+# Update OS elastic stack
+
+- name: Update all OS packages via DNF
+  dnf:
+    name: "*"
+    state: latest
+    update_cache: yes
+
+- name: Check if a reboot is required
+  # 'needs-restarting -r' returns exit code 1 if reboot is needed, 0 if not
+  command: "needs-restarting -r"
+  register: reboot_check
+  changed_when: false
+  failed_when: reboot_check.rc > 1
+
+- name: Run Elastic rolling reboots
+  ansible.builtin.import_tasks: elastic.rolling.yml
+  when: reboot_check.rc == 1 
