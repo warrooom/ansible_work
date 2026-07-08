@@ -1,0 +1,102 @@
+## Rolling reboot process for Elastic
+
+- name: Disable shard allocation for the Elastic cluster
+  ansible.builtin.uri:
+    url: "https://elasticmaster1:9200/_cluster/settings"
+    return_content: true
+    method: PUT
+    body_format: json
+    body:
+      persistent:
+        cluster.routing.allocation.enable: "primaries"
+    headers:
+     Authorization: "ApiKey {{ elastic_key }}"
+  retries: 3
+  delay: 5
+  register: shard_disable_res
+  when: "'es_nodes' in group_names"
+
+- name: Stop indexing and perform a flush
+  ansible.builtin.uri:
+    url: "https://elasticmaster1:9200/_flush"
+    return_content: true
+    method: POST
+    headers:
+      Authorization: "ApiKey {{ elastic_key }}"
+  retries: 5
+  delay: 10
+  when: "'es_nodes' in group_names"
+
+- name: Stop elasticsearch service
+  service:
+    name: elasticsearch
+    state: stopped
+  register: agent_status
+  until: agent_status.state == "stopped"
+  retries: 2
+  delay: 5
+  when: "'es_nodes' in group_names
+
+- name: Reboot the machine
+  reboot:
+    msg: "Reboot initiated by Ansible after update"
+    connect_timeout: 5
+    reboot_timeout: 300
+    pre_reboot_delay: 0
+    post_reboot_delay: 30
+    test_command: uptime
+
+- name: Ensure elasticsearch is enabled and running
+  service:
+    name: elasticsearch
+    state: started
+    enabled: yes
+  register: agent_status
+  until: agent_status.state == "started"
+  retries: 6
+  delay: 10
+  when: "'es_nodes' in group_names
+
+- name: Watch for node to return to cluster
+  ansible.builtin.uri:
+    url: "https://elasticmaster1:9200/_cat/allocation/?&s=node"
+    return_content: true
+    method: GET
+    headers:
+     Authorization: "ApiKey {{ elastic_key }}"
+     return_content: yes
+  retries: 15
+  delay: 30
+  register: this
+  failed_when: "this is failed or ansible_hostname not in this.content"
+  when: "'es_nodes' in group_names"
+
+- name: Enable shard allocation for the Elastic cluster
+  ansible.builtin.uri:
+    url: "elasticmaster1:9200/_cluster/settings"
+    return_content: true
+    method: PUT
+    body_format: json
+    body:
+      persistent:
+        cluster.routing.allocation.enable: null
+    headers:
+     Authorization: "ApiKey {{ elastic_key }}"
+  retries: 3
+  delay: 5
+  register: shard_enable_res
+  when: "'es_nodes' in group_names"
+
+- name: Check elastic cluster health
+  ansible.builtin.uri:
+    url: "elasticmaster1:9200/_cat/health"
+    return_content: true
+    method: GET
+    headers:
+     Authorization: "ApiKey {{ elastic_key }}"
+     return_content: yes
+  retries: 35
+  delay: 60
+  register: this
+  failed_when: "this is failed or 'green' not in this.content"
+  when: "'es_nodes' in group_names"
